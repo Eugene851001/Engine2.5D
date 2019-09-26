@@ -30,7 +30,7 @@ const int ScreenHeight = 40;
 const int MapWidth = 16;
 const int MapHeigth = 16;
 
-const float fViewAngle = 3.1415f / 4.0f;
+const float fViewAngle = PI / 4.0f;
 const float fViewRad = 10.0f;  
 const float fDepth = 16.0f;
 
