@@ -38,7 +38,7 @@ struct
 {
 	float fX = 8.0f;
 	float fY = 8.0f;
-	float fAngle = 0.0f;//угол с положительным направлением ox
+	float fAngle = 0.0f;//ГіГЈГ®Г« Г± ГЇГ®Г«Г®Г¦ГЁГІГҐГ«ГјГ­Г»Г¬ Г­Г ГЇГ°Г ГўГ«ГҐГ­ГЁГҐГ¬ ox
 	float fSpeed = 0.001f;
 	float fAngleSpeed = 0.001f;
 } Player;
