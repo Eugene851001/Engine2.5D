@@ -4,6 +4,7 @@
 #define PI 3.14159265
 #define ENEMY_SHADE '$'
 #define OUTPUT "Photo.txt"
+#define max(a, b) (a > b) ? a : b
 
 using namespace std;
 void makeScreenShoot(char *screen);
@@ -16,11 +17,14 @@ class Enemy
 public:
 	float x, y;
 	float size;
-	Enemy(float x, float y, float size)
+	int absoluteWidth, absoluteHeight;
+	Enemy(float x, float y, float size, int Width, int Height)
 	{
 		this->x = x;
 		this->y = y;
 		this->size = size;
+		absoluteWidth = Width;
+		absoluteHeight = Height;
 	}
 		
 };
@@ -38,7 +42,7 @@ struct
 {
 	float fX = 8.0f;
 	float fY = 8.0f;
-	float fAngle = 0.0f;//óãîë ñ ïîëîæèòåëüíûì íàïðàâëåíèåì ox
+	float fAngle = 0.0f;
 	float fSpeed = 0.001f;
 	float fAngleSpeed = 0.001f;
 } Player;
@@ -172,7 +176,7 @@ int main(){
 		0, NULL, CONSOLE_TEXTMODE_BUFFER, NULL);
 	DWORD dwBytes = 0;	
 	SetConsoleActiveScreenBuffer(hConsole);
-	Enemy enemy(3, 3, 0.3);
+	Enemy enemy(3, 3, 0.1, 2, 1);
 	int tm1 = clock();
 	int tm2 = clock();
 	
@@ -259,18 +263,43 @@ int main(){
 			else
 				if (alpha > CheckLow + 2 * PI)
 					isVisual = true;
-		if ((alpha > CheckLow && alpha < CheckHigh) || isVisual)
+		//raytracing 
+		float fEnemyDistance = sqrt(pow(enemy.x - Player.fX, 2) + pow(enemy.y - Player.fY, 2));
+		float fRayEnemyDistance = 0, Accuracy = 0.2f;
+		bool isWall = false;
+		bool isPlayer = false;
+		while (!isWall && !isPlayer && fRayEnemyDistance < fEnemyDistance)
+		{
+			fRayEnemyDistance += 0.1f;
+			float testX = enemy.x + cosf(alpha - PI) * fRayEnemyDistance;
+			float testY = enemy.y + sinf(alpha - PI)  * fRayEnemyDistance;
+			if(map[int(testY + 0.5f) * MapWidth + int(testX + 0.5f)] == '#')
+				isWall = true;
+			if (testX > Player.fX - Accuracy && testX < Player.fX + Accuracy 
+				&& testY > Player.fY - Accuracy && testY < Player.fY + Accuracy)
+				isPlayer = true;
+			
+		}
+		if (((alpha > CheckLow && alpha < CheckHigh) || isVisual) && isPlayer)//rename identificators 
 		{
 			screen[ScreenWidth  / 2] = '0';
-			float fEnemyDistance = sqrt(pow(enemy.x - Player.fX, 2) + pow(enemy.y - Player.fY, 2));
+			fEnemyDistance = sqrt(pow(enemy.x - Player.fX, 2) + pow(enemy.y - Player.fY, 2));
 			int Ceiling = ScreenHeight  / 2.0f - ScreenHeight / (fEnemyDistance);
 			int Floor = ScreenHeight - Ceiling;
+			int relativeHeight = Floor - Ceiling;
+			int relativeWidth = enemy.absoluteWidth * relativeHeight / enemy.absoluteHeight;
 			int y;
 			x = (alpha - CheckLow) * ScreenWidth / (CheckHigh - CheckLow);
-			for (y = Ceiling; y < Floor && y > 0 && y < ScreenHeight; y++)
+			int j;
+			for (j = x - relativeWidth / 2; j < x + relativeWidth / 2; j++)
 			{
-				screen[y * ScreenWidth + x] = ENEMY_SHADE;
-			}	 
+				if (j > 0 && j < ScreenWidth)
+					for (y = Ceiling; y < Floor; y++)
+					{
+						if (!(y > ScreenHeight || y < 0))
+							screen[y * ScreenWidth + j] = ENEMY_SHADE;
+					}
+			}
 		}
 		//----------------------------------------------------
 		
