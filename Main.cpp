@@ -4,7 +4,7 @@
 #define PI 3.14159265
 #define ENEMY_SHADE '$'
 #define OUTPUT "Photo.txt"
-#define max(a, b) (a > b) ? a : b
+#define max(a, b) ((a) > (b)) ? a : b
 
 using namespace std;
 void makeScreenShoot(char *screen);
@@ -17,16 +17,30 @@ class Enemy
 public:
 	float x, y;
 	float size;
-	int absoluteWidth, absoluteHeight;
-	Enemy(float x, float y, float size, int Width, int Height)
+	float fspeed = 0.0005f;
+	int textureWidth = 4;
+	int textureHeight = 4;
+	char texture[4][4] = {{'$', '$', '$', '$'},
+						   {' ', '$', '$', ' '},
+						   {'$', '$', '$', '$'},
+						   {'$', ' ', ' ', '$'}};
+	Enemy(float x, float y, float size)
 	{
 		this->x = x;
 		this->y = y;
 		this->size = size;
-		absoluteWidth = Width;
-		absoluteHeight = Height;
 	}
-		
+	void Move(int plX, int plY, float time)
+	{
+		float distance = sqrt(pow(x - plX, 2) + pow(y - plY, 2));
+		if (distance > size + 0.2f)
+		{
+			float dx = (plX - x) / distance;
+			float dy = (plY - y) / distance;
+			x += dx * fspeed;
+			y += dy * fspeed;
+		}
+	}		
 };
 
 const int ScreenWidth = 120;
@@ -176,7 +190,7 @@ int main(){
 		0, NULL, CONSOLE_TEXTMODE_BUFFER, NULL);
 	DWORD dwBytes = 0;	
 	SetConsoleActiveScreenBuffer(hConsole);
-	Enemy enemy(3, 3, 0.1, 2, 1);
+	Enemy enemy(3, 3, 0.3);
 	int tm1 = clock();
 	int tm2 = clock();
 	
@@ -187,6 +201,7 @@ int main(){
 		float time = (tm1 - tm2);
 		tm2 = tm1;
 		MovePlayer(time, screen, &enemy);
+		enemy.Move(Player.fX, Player.fY, time);
 		//draw walls and floor
 		int x;
 		for (x = 0; x < ScreenWidth; x++)
@@ -198,7 +213,7 @@ int main(){
 			
 			while (!isWall)
 			{
-				fWallDistance+= 0.1f;
+				fWallDistance+= 0.1f; 
 				int TestX = (int)(Player.fX + cosf(fRayAngle) * fWallDistance);
 				int TestY = (int)(Player.fY + sinf(fRayAngle) * fWallDistance);	
 				
@@ -251,54 +266,58 @@ int main(){
 			Player.fAngle -= 2 * PI;
 		while (Player.fAngle < 0)
 			Player.fAngle += 2 * PI;
-		float alpha = atan2(enemy.y - Player.fY, enemy.x - Player.fX);
-		if (alpha < 0)
-			alpha += 2 * PI;
+		float MainAlpha = atan2(enemy.y - Player.fY, enemy.x - Player.fX);
+		if (MainAlpha < 0)
+			MainAlpha += 2 * PI;
 		bool isVisual = false;
-		float CheckLow = Player.fAngle - fViewAngle / 2.0f;
-		float CheckHigh = Player.fAngle + fViewAngle / 2.0f;
-		if (CheckLow < 0)
-			if (alpha < PI / 2.0f && alpha < CheckHigh)
-				isVisual = true;
-			else
-				if (alpha > CheckLow + 2 * PI)
-					isVisual = true;
-		//raytracing 
 		float fEnemyDistance = sqrt(pow(enemy.x - Player.fX, 2) + pow(enemy.y - Player.fY, 2));
-		float fRayEnemyDistance = 0, Accuracy = 0.2f;
-		bool isWall = false;
-		bool isPlayer = false;
-		while (!isWall && !isPlayer && fRayEnemyDistance < fEnemyDistance)
+		float j;
+		float N = fEnemyDistance / (120.0f + 60.0f);//replace 60.0f
+		for (j = -enemy.size; j < enemy.size; j += N)
 		{
-			fRayEnemyDistance += 0.1f;
-			float testX = enemy.x + cosf(alpha - PI) * fRayEnemyDistance;
-			float testY = enemy.y + sinf(alpha - PI)  * fRayEnemyDistance;
-			if(map[int(testY + 0.5f) * MapWidth + int(testX + 0.5f)] == '#')
-				isWall = true;
-			if (testX > Player.fX - Accuracy && testX < Player.fX + Accuracy 
-				&& testY > Player.fY - Accuracy && testY < Player.fY + Accuracy)
-				isPlayer = true;
-			
-		}
-		if (((alpha > CheckLow && alpha < CheckHigh) || isVisual) && isPlayer)//rename identificators 
-		{
-			screen[ScreenWidth  / 2] = '0';
-			fEnemyDistance = sqrt(pow(enemy.x - Player.fX, 2) + pow(enemy.y - Player.fY, 2));
-			int Ceiling = ScreenHeight  / 2.0f - ScreenHeight / (fEnemyDistance);
-			int Floor = ScreenHeight - Ceiling;
-			int relativeHeight = Floor - Ceiling;
-			int relativeWidth = enemy.absoluteWidth * relativeHeight / enemy.absoluteHeight;
-			int y;
-			x = (alpha - CheckLow) * ScreenWidth / (CheckHigh - CheckLow);
-			int j;
-			for (j = x - relativeWidth / 2; j < x + relativeWidth / 2; j++)
+			float alpha = atan2(j, fEnemyDistance) + MainAlpha;
+			float CheckLow = Player.fAngle - fViewAngle / 2.0f;
+			float CheckHigh = Player.fAngle + fViewAngle / 2.0f;
+			if (CheckLow < 0)
+				if (alpha < PI / 2.0f && alpha < CheckHigh)
+					isVisual = true;
+				else
+					if (alpha > CheckLow + 2 * PI)
+						isVisual = true;
+		//raytracing 
+			float fRayEnemyDistance = 0, Accuracy =  0.2f;
+			bool isWall = false;
+			bool isPlayer = false;
+			while (!isWall && !isPlayer && fRayEnemyDistance < fEnemyDistance)
 			{
-				if (j > 0 && j < ScreenWidth)
-					for (y = Ceiling; y < Floor; y++)
+				fRayEnemyDistance += 0.1f;
+				float testX = enemy.x + cosf(alpha - PI) * fRayEnemyDistance;
+				float testY = enemy.y + sinf(alpha - PI)  * fRayEnemyDistance;
+				if(map[int(testY + 0.5f) * MapWidth + int(testX + 0.5f)] == '#')
+					isWall = true;
+				if (testX > Player.fX - Accuracy && testX < Player.fX + Accuracy 
+					&& testY > Player.fY - Accuracy && testY < Player.fY + Accuracy)
+					isPlayer = true;
+			}
+		//------------------------------------------------------
+			if (((alpha > CheckLow && alpha < CheckHigh) || isVisual) && isPlayer)//rename identificators 
+			{
+				screen[ScreenWidth  / 2] = '0';
+				//fEnemyDistance = sqrt(pow(enemy.x - Player.fX, 2) + pow(enemy.y - Player.fY, 2));
+				int Ceiling = ScreenHeight  / 2.0f - ScreenHeight / (fEnemyDistance);
+				int Floor = ScreenHeight - Ceiling;
+				int Height = Floor - Ceiling;
+				int textureX = (j + enemy.size) * enemy.textureWidth / (2 * enemy.size);
+				int y;
+				x = (alpha - CheckLow) * ScreenWidth / (CheckHigh - CheckLow);
+				for (y = Ceiling; y < Floor; y++)
+				{
+					if (!(y > ScreenHeight || y < 0))
 					{
-						if (!(y > ScreenHeight || y < 0))
-							screen[y * ScreenWidth + j] = ENEMY_SHADE;
+						int textureY = (y - Ceiling) * enemy.textureHeight / Height;
+						screen[y * ScreenWidth + x] = enemy.texture[textureY][textureX];//ENEMY_SHADE;
 					}
+				}
 			}
 		}
 		//----------------------------------------------------
