@@ -41,7 +41,7 @@ public:
 	int HP = 20;
 	float x, y;
 	float size;
-	float fspeed = 0.0f//0.0001f;
+	float fspeed = 0.0f;//0.0001f;
 	int textureWidth = 4;
 	int textureHeight = 4;
 	char texture[4][4] = {{'$', '$', '$', '$'},
@@ -86,14 +86,17 @@ public:
 	}	
 	void Move(const string &Map, Enemy *enemy, float time)
 	{
-		x += dx * fspeed * time;
-		y += dy * fspeed * time;
-		if (map[int(x) * ScreenWidth + int(y)] = '#')
-			isDestroy = true;
-		int size = enemy->size;
-		if (x > enemy->x - size && x < enemy->x + size 
-			&& y > enemy->y - size && y < enemy->y + size)
-			isDestroy = true;
+		if (!isDestroy)
+		{
+			x += dx * fspeed * time;
+			y += dy * fspeed * time;
+			if (map[int(y) * MapWidth + int(x)] == '#')
+				isDestroy = true;
+			int size = enemy->size;
+			if (x > enemy->x - size && x < enemy->x + size 
+				&& y > enemy->y - size && y < enemy->y + size)
+				isDestroy = true;
+		}
 	}
 };
 
@@ -179,7 +182,7 @@ void MovePlayer(float time, char *screen, Enemy *enemy)
 		if (Player.tmReload < Player.tmAfterShoot)
 		{
 			bullets.push_back(new Bullet(Player.fX, Player.fY, 
-				cosf(Player.fAngle), -cosf(Player.fAngle)));
+				cosf(Player.fAngle), sinf(Player.fAngle)));
 			Player.tmAfterShoot = 0;
 		}
 	}
@@ -358,11 +361,11 @@ void DrawEnemy(char *screen, Enemy enemy)
 void DrawCircle(int x, int y, int Rad, char shade, char *screen)
 {
 	int i, width;
-	for (i = 0; i < Rad; i++)
+	for (i = 0; i < Rad && i < (ScreenHeight / 2); i++)
 	{
 		width = (int)sqrt(Rad * Rad - i * i);
 		int j;
-		for (j = 0; j < width; j++)
+		for (j = 0; j < width && j < (ScreenWidth / 2); j++)
 		{
 			screen[(i + y) * ScreenWidth + j + x] = shade;
 			screen[(i + y) * ScreenWidth - j + x] = shade;
@@ -375,10 +378,18 @@ void DrawCircle(int x, int y, int Rad, char shade, char *screen)
 void UpdateBullets()
 {
 	list<Bullet*>::iterator p = bullets.begin();
-	while (p != bullets.end())
+	list<Bullet*>::iterator ptemp = p;
+	while (p != bullets.end() && bullets.size() > 0)
 	{
-	//	if (*(p)->isDestroy)
-			
+		if ((*p)->isDestroy)
+		{
+			ptemp = p;
+			ptemp++;
+			bullets.remove(*p);
+			p = ptemp;
+		}
+		else
+			p++;
 	}
 }
 
@@ -439,6 +450,7 @@ int main(){
 		float time = (tm1 - tm2);
 		tm2 = tm1;
 		MovePlayer(time, screen, &enemy);
+		UpdateBullets();
 		enemy.Move(Player.fX, Player.fY, time);
 		int j;
 		list<Bullet*>::iterator p = bullets.begin();
