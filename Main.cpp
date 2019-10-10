@@ -1,118 +1,14 @@
-#include <iostream>
-#include <cmath>
-#include <ctime>
-#include <list>
-#define PI 3.14159265
-#define BULLET_SHADE '@'
-#define OUTPUT "Photo.txt"
-#define max(a, b) ((a) > (b)) ? a : b
+#include "Engine.h"
+#include "Enemy.h"
+#include "EnemySoldier.h"
+#include "Bullet.h"
 
 using namespace std;
-void makeScreenShoot(char* screen);
 
-#include <Windows.h>
-
-const int ScreenWidth = 120;
-const int ScreenHeight = 40;
-const int MapWidth = 16;
-const int MapHeigth = 16;
-
-const float fViewAngle = PI / 4.0f;
-const float fViewRad = 10.0f;
-const float fDepth = 16.0f;
-
-struct
-{
-	float fX = 8.0f;
-	float fY = 8.0f;
-	float fAngle = 0.0f;
-	float fSpeed = 0.001f;
-	float fAngleSpeed = 0.001f;
-	float tmReload = 1000.0f;
-	float tmAfterShoot = 1000.0f;
-} Player;
+player Player;
 
 string map = "";
-
-class Enemy
-{
-
-public:
-	int HP = 20;
-	float x, y;
-	float size;
-	float fspeed = 0.0f;//0.0001f;
-	int textureWidth = 4;
-	int textureHeight = 4;
-	bool isDestroy = false;
-	char texture[4][4] = { {'$', '$', '$', '$'},
-						   {' ', '$', '$', ' '},
-						   {'$', '$', '$', '$'},
-						   {'$', ' ', ' ', '$'} };
-	Enemy(float x, float y, float size)
-	{
-		this->x = x;
-		this->y = y;
-		this->size = size;
-	}
-	void Move(int plX, int plY, float time)
-	{
-		if (!isDestroy)
-		{
-			float distance = sqrt(pow(x - plX, 2) + pow(y - plY, 2));
-			if (distance > size + 0.2f)
-			{
-				float dx = (plX - x) / distance;
-				float dy = (plY - y) / distance;
-				x += dx * fspeed * time;
-				y += dy * fspeed * time;
-			}
-		}
-	}
-};
-
 list<Enemy*> enemyes;
-
-class Bullet
-{
-
-public:
-	int Damage;
-	float x, y;
-	float fspeed = 0.002f;
-	float dx, dy;
-	bool isDestroy;
-	Bullet(float x, float y, float dx, float dy)
-	{
-		this->x = x;
-		this->y = y;
-		this->dx = dx;
-		this->dy = dy;
-		isDestroy = false;
-	}
-	void Move(const string& Map, float time)
-	{
-		if (!isDestroy)
-		{
-			x += dx * fspeed * time;
-			y += dy * fspeed * time;
-			if (map[int(y) * MapWidth + int(x)] == '#')
-				isDestroy = true;
-			if (enemyes.size() > 0)
-			{
-				list<Enemy*>::iterator pEnemy = enemyes.begin();
-				int size = (*pEnemy)->size;
-				while (pEnemy != enemyes.end())
-				{
-					if (x > (*pEnemy)->x - size && x < (*pEnemy)->x + size
-						&& y >(*pEnemy)->y - size && y < (*pEnemy)->y + size)
-						isDestroy = true;
-					pEnemy++;
-				}
-			}
-		}
-	}
-};
 
 list<Bullet*> bullets;
 
@@ -156,11 +52,11 @@ bool isCollision(float x, float y)
 {
 	bool isCollision = 0;
 	list<Enemy*>::iterator p = enemyes.begin();
-	while ((p != enemyes.end()) && (!isCollision) && (bullets.size() > 0))
+	while ((p != enemyes.end()) && (!isCollision) && (enemyes.size() > 0))
 	{
-		float size = (*p)->size;
-		if (x > (*p)->x - size && x < (*p)->x + size
-			&& y > (*p)->y - size && y < (*p)->y + size)
+		float size = (*p)->getSize();
+		if (x > (*p)->getX() - size && x < (*p)->getX() + size
+			&& y >(*p)->getY() - size && y < (*p)->getY() + size)
 			isCollision = true;
 		p++;
 	}
@@ -321,14 +217,15 @@ void DrawEnemy(char* screen, Enemy* enemy)
 		Player.fAngle -= 2 * PI;
 	while (Player.fAngle < 0)
 		Player.fAngle += 2 * PI;
-	float MainAlpha = atan2(enemy->y - Player.fY, enemy->x - Player.fX);
+	float MainAlpha = atan2(enemy->getY() - Player.fY, enemy->getX() - Player.fX);
 	if (MainAlpha < 0)
 		MainAlpha += 2 * PI;
 	bool isVisual = false;
-	float fEnemyDistance = sqrt(pow(enemy->x - Player.fX, 2) + pow(enemy->y - Player.fY, 2));
+	float fEnemyDistance = sqrt(pow(enemy->getX() - Player.fX, 2) + 
+		pow(enemy->getY() - Player.fY, 2));
 	float j;
 	float N = fEnemyDistance / (120.0f + 60.0f);//replace 60.0f
-	for (j = -enemy->size; j < enemy->size; j += N)
+	for (j = -enemy->getSize(); j < enemy->getSize(); j += N)
 	{
 		float alpha = atan2(j, fEnemyDistance) + MainAlpha;
 		float CheckLow = Player.fAngle - fViewAngle / 2.0f;
@@ -346,8 +243,8 @@ void DrawEnemy(char* screen, Enemy* enemy)
 		while (!isWall && !isPlayer && fRayEnemyDistance < fEnemyDistance)
 		{
 			fRayEnemyDistance += 0.1f;
-			float testX = enemy->x + cosf(alpha - PI) * fRayEnemyDistance;
-			float testY = enemy->y + sinf(alpha - PI) * fRayEnemyDistance;
+			float testX = enemy->getX() + cosf(alpha - PI) * fRayEnemyDistance;
+			float testY = enemy->getY() + sinf(alpha - PI) * fRayEnemyDistance;
 			if (map[int(testY + 0.5f) * MapWidth + int(testX + 0.5f)] == '#')
 				isWall = true;
 			if (testX > Player.fX - Accuracy && testX < Player.fX + Accuracy
@@ -362,14 +259,15 @@ void DrawEnemy(char* screen, Enemy* enemy)
 			int Ceiling = ScreenHeight / 2.0f - ScreenHeight / (fEnemyDistance);
 			int Floor = ScreenHeight - Ceiling;
 			int Height = Floor - Ceiling;
-			int textureX = (j + enemy->size) * enemy->textureWidth / (2 * enemy->size);
+			int textureX = (j + enemy->getSize()) * enemy->getTextureWidth()
+				/ (2 * enemy->getSize());
 			int y;
 			int x = (alpha - CheckLow) * ScreenWidth / (CheckHigh - CheckLow);
 			for (y = Ceiling; y < Floor; y++)
 			{
 				if (!(y > ScreenHeight || y < 0))
 				{
-					int textureY = (y - Ceiling) * enemy->textureHeight / Height;
+					int textureY = (y - Ceiling) * enemy->getTextureHeight() / Height;
 					screen[y * ScreenWidth + x] = enemy->texture[textureY][textureX];//ENEMY_SHADE;
 				}
 			}
@@ -391,6 +289,7 @@ void DrawEnemyes(char* screen)
 //Add sort to enemyes and  maybe bullets
 void UpdateEnemyes()
 {
+	enemyes.sort();
 	list<Enemy*>::iterator pEnemy = enemyes.begin();
 	list<Bullet*>::iterator pBullet = bullets.begin();
 	float size;
@@ -399,14 +298,14 @@ void UpdateEnemyes()
 		pBullet = bullets.begin();
 		while (pBullet != bullets.end())
 		{
-			float size = (*pEnemy)->size;
-			if ((*pBullet)->x > (*pEnemy)->x - size
-				&& (*pBullet)->x < (*pEnemy)->x + size
-				&& (*pBullet)->y < (*pEnemy)->y + size
-				&& (*pBullet)->y >(*pEnemy)->y - size)
+			float size = (*pEnemy)->getSize();
+			if ((*pBullet)->getX() > (*pEnemy)->getX() - size
+				&& (*pBullet)->getX() < (*pEnemy)->getX() + size
+				&& (*pBullet)->getY() < (*pEnemy)->getY() + size
+				&& (*pBullet)->getY() >(*pEnemy)->getY() - size)
 			{
-				(*pEnemy)->isDestroy = true;
-				(*pBullet)->isDestroy = true;
+				(*pEnemy)->setDestroy(true);
+				(*pBullet)->setDestroy(true);
 			}
 			pBullet++;
 		}
@@ -416,10 +315,11 @@ void UpdateEnemyes()
 	list<Enemy*>::iterator pTemp = enemyes.begin();
 	while ((pEnemy != enemyes.end()) && (enemyes.size() > 0))
 	{
-		if ((*pEnemy)->isDestroy)
+		if ((*pEnemy)->getDestroy())
 		{
 			pTemp = pEnemy;
 			pTemp++;
+			delete *pEnemy;
 			enemyes.remove(*pEnemy);
 			pEnemy = pTemp;
 		}
@@ -451,7 +351,7 @@ void UpdateBullets()
 	list<Bullet*>::iterator ptemp = p;
 	while (p != bullets.end() && bullets.size() > 0)
 	{
-		if ((*p)->isDestroy)
+		if ((*p)->getDestroy())
 		{
 			ptemp = p;
 			ptemp++;
@@ -470,8 +370,8 @@ void DrawBullets(char* screen)
 	list<Bullet*>::iterator p = bullets.begin();
 	while (p != bullets.end())
 	{
-		x = (*p)->x;
-		y = (*p)->y;
+		x = (*p)->getX();
+		y = (*p)->getY();
 		while (Player.fAngle > 2 * PI)
 			Player.fAngle -= 2 * PI;
 		while (Player.fAngle < 0)
@@ -506,7 +406,8 @@ void AddEnemyes()
 {
 	enemyes.push_back(new Enemy(10.0f, 3.0f, 0.3f));
 	enemyes.push_back(new Enemy(3.0f, 3.0f, 0.3f));
-//	enemyes.push_back(new Enemy(8.0f, 11.0f, 0.3f));
+	enemyes.push_back(new EnemySoldier(4.0f, 9.0f, 0.3f));
+	//	enemyes.push_back(new Enemy(8.0f, 11.0f, 0.3f));
 }
 
 int main() {
@@ -537,7 +438,7 @@ int main() {
 		list<Bullet*>::iterator p = bullets.begin();
 		while (p != bullets.end())
 		{
-			(*p)->Move(map, time);
+			(*p)->Move(map, time, enemyes);
 			p++;
 		}
 		//draw walls and floor
