@@ -3,13 +3,13 @@
 #include "EnemySoldier.h"
 #include "Bullet.h"
 
+
 using namespace std;
 
 player Player;
 
 string map = "";
 list<Enemy*> enemyes;
-
 list<Bullet*> bullets;
 
 void CreateMap()
@@ -288,7 +288,7 @@ void DrawEnemyes(char* screen)
 //Add sort to enemyes and  maybe bullets
 void UpdateEnemyes()
 {
-//	enemyes.sort();
+	enemyes.sort();
 	float size;
 	for (Enemy *pEnemy: enemyes)
 	{
@@ -402,6 +402,7 @@ void AddEnemyes()
 	enemyes.push_back(new Enemy(10.0f, 3.0f, 0.3f));
 	enemyes.push_back(new Enemy(3.0f, 3.0f, 0.3f));
 	enemyes.push_back(new EnemySoldier(4.0f, 9.0f, 0.3f));
+	//enemyes.push_back(new Enemy(2.0f, 2.0f, 0.3f));
 	//	enemyes.push_back(new Enemy(8.0f, 11.0f, 0.3f));
 }
 
@@ -409,6 +410,12 @@ void MoveEnemyes(float time)
 {
 	for (Enemy *pEnemy : enemyes)
 		pEnemy->Move(Player.fX, Player.fY, time, map);	
+}
+
+void MoveBullets(float time)
+{
+	for (Bullet *pBullet : bullets)
+		pBullet->Move(map, time, enemyes);
 }
 
 int main() {
@@ -436,13 +443,13 @@ int main() {
 		UpdateEnemyes();
 		//enemy.Move(Player.fX, Player.fY, time);
 		int j;
-		//move bullets
-		list<Bullet*>::iterator p = bullets.begin();
+		MoveBullets(time);
+	/*	list<Bullet*>::iterator p = bullets.begin();
 		while (p != bullets.end())
 		{
 			(*p)->Move(map, time, enemyes);
 			p++;
-		}
+		}*/
 		//draw walls and floor
 		DrawWalls(screen);
 		DrawEnemyes(screen);

@@ -1,18 +1,15 @@
 #ifndef ENEMY_SOLDIER_H
 #define ENEMY_SOLDIER_H
-#include "Enemy.h"
 #include "Bullet.h"
+#include "Enemy.h"
 
-extern std::list<Bullet*> bullets;
-
-//std::list<Bullet*> EnBullets;
+//extern std::list<Bullet*> bullets;
 
 class EnemySoldier: public Enemy
 {
 protected:
 	float tmAfterShoot, tmReload; 
 	void Attack(float plX, float plY, float time);
-	
 public:
 	EnemySoldier(float x, float y, float size): Enemy(x, y, size)
 	{

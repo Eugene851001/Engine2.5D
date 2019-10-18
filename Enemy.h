@@ -13,7 +13,10 @@ protected:
 	int textureWidth;// = 4;
 	int textureHeight;// = 4;
 	bool isDestroy;// = false;
-
+	bool operator < (const Enemy &en2);
+	bool operator>(Enemy &en2);
+	bool operator==(Enemy &en2);
+	bool operator>=(Enemy &en2);
 public:
 
 	char texture[4][4];/* = { {'$', '$', '$', '$'},
@@ -25,20 +28,20 @@ public:
 	virtual void Move(float plX, float plY, float time, std::string &map);
 	
 	void InitTexture(); 
-	float getX()
+	float getX() const
 	{
 		return x;
 	}
-	float getY()
+	float getY() const
 	{
 		return y;
 	}
-	int getTextureWidth()
+	int getTextureWidth() const
 	{
 		return textureWidth;
 	}
 
-	int getTextureHeight()
+	int getTextureHeight() const
 	{
 		return textureHeight;
 	}

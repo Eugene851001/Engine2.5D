@@ -10,7 +10,7 @@ Enemy::Enemy(float x, float y, float size)
 	fspeed = 0.0005f;
 	textureWidth = 4;
 	textureHeight = 4;
-	fViewRad = 3.0f;
+	fViewRad = 5.0f;
 	isDestroy = false;
 	InitTexture();
 }
@@ -42,35 +42,35 @@ void Enemy::Move(float plX, float plY, float time, std::string &map)
 				float dy = (plY - y) / distance;
 				float testX = x + dx * fspeed * time;
 				float testY = y + dy * fspeed * time;
-				if (map[testY * MapWidth + testX] != '#')
-				{
+		//		if (map[testY * MapWidth + testX] != '#')
+		//		{
 					x = testX;
 					y = testY;	
-				}
+		//		}
 			}
 	}
 }
 
 extern player Player;
 
-bool operator<(Enemy& en1, Enemy& en2)
+bool Enemy::operator < (const Enemy &en2)
 {
-	float dist1 = sqrt(pow(Player.fX - en1.getX(), 2) + pow(Player.fY - en1.getY(), 2));
+	float dist1 = sqrt(pow(Player.fX - this->getX(), 2) + pow(Player.fY - this->getY(), 2));
 	float dist2 = sqrt(pow(Player.fX - en2.getX(), 2) + pow(Player.fY - en2.getY(), 2));
-	return dist1 < dist2;
+	return dist1 < dist2;	
 }
 
-int operator>(Enemy& en1, Enemy& en2)
+bool Enemy::operator>(Enemy &en2)
 {
-	float dist1 = sqrt(pow(Player.fX - en1.getX(), 2) + pow(Player.fY - en1.getY(), 2));
+	float dist1 = sqrt(pow(Player.fX - this->getX(), 2) + pow(Player.fY - this->getY(), 2));
 	float dist2 = sqrt(pow(Player.fX - en2.getX(), 2) + pow(Player.fY - en2.getY(), 2));
-	return dist1 > dist2;
+	return dist1 > dist2;	
 }
 
-int operator==(Enemy& en1, Enemy& en2)
+bool Enemy::operator==(Enemy &en2)
 {
-	float dist1 = sqrt(pow(Player.fX - en1.getX(), 2) + pow(Player.fY - en1.getY(), 2));
+	float dist1 = sqrt(pow(Player.fX - this->getX(), 2) + pow(Player.fY - this->getY(), 2));
 	float dist2 = sqrt(pow(Player.fX - en2.getX(), 2) + pow(Player.fY - en2.getY(), 2));
-	return dist1 == dist2;
+	return dist1 == dist2;	
 }
 
