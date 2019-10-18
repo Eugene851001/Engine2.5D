@@ -277,11 +277,10 @@ void DrawEnemy(char* screen, Enemy* enemy)
 
 void DrawEnemyes(char* screen)
 {
-	list<Enemy*>::iterator p = enemyes.begin();
-	while (p != enemyes.end())
+	//list<Enemy*>::iterator p = enemyes.begin();
+	for (Enemy *pEnemy : enemyes)
 	{
-		DrawEnemy(screen, *p);
-		p++;
+		DrawEnemy(screen, pEnemy);
 	}
 }
 
@@ -289,28 +288,24 @@ void DrawEnemyes(char* screen)
 //Add sort to enemyes and  maybe bullets
 void UpdateEnemyes()
 {
-	enemyes.sort();
-	list<Enemy*>::iterator pEnemy = enemyes.begin();
-	list<Bullet*>::iterator pBullet = bullets.begin();
+//	enemyes.sort();
 	float size;
-	while (pEnemy != enemyes.end())
+	for (Enemy *pEnemy: enemyes)
 	{
-		pBullet = bullets.begin();
-		while (pBullet != bullets.end())
+		for (Bullet *pBullet : bullets)
 		{
-			float size = (*pEnemy)->getSize();
-			if ((*pBullet)->getX() > (*pEnemy)->getX() - size
-				&& (*pBullet)->getX() < (*pEnemy)->getX() + size
-				&& (*pBullet)->getY() < (*pEnemy)->getY() + size
-				&& (*pBullet)->getY() >(*pEnemy)->getY() - size)
+			float size = pEnemy->getSize();
+			if (pBullet->getX() > pEnemy->getX() - size
+				&& pBullet->getX() < pEnemy->getX() + size
+				&& pBullet->getY() < pEnemy->getY() + size
+				&& pBullet->getY() > pEnemy->getY() - size)
 			{
-				(*pEnemy)->setDestroy(true);
-				(*pBullet)->setDestroy(true);
+				pEnemy->setDestroy(true);
+				pBullet->setDestroy(true);
 			}
-			pBullet++;
 		}
-		pEnemy++;
 	}
+	list<Enemy*>::iterator pEnemy = enemyes.begin();
 	pEnemy = enemyes.begin();
 	list<Enemy*>::iterator pTemp = enemyes.begin();
 	while ((pEnemy != enemyes.end()) && (enemyes.size() > 0))
@@ -410,6 +405,12 @@ void AddEnemyes()
 	//	enemyes.push_back(new Enemy(8.0f, 11.0f, 0.3f));
 }
 
+void MoveEnemyes(float time)
+{
+	for (Enemy *pEnemy : enemyes)
+		pEnemy->Move(Player.fX, Player.fY, time, map);	
+}
+
 int main() {
 	CreateMap();
 	char* screen = new char[ScreenWidth * ScreenHeight];
@@ -430,6 +431,7 @@ int main() {
 		tm2 = tm1;
 		list<Enemy*>::iterator pEnemy = enemyes.begin();
 		MovePlayer(time, screen);
+		MoveEnemyes(time);
 		UpdateBullets();
 		UpdateEnemyes();
 		//enemy.Move(Player.fX, Player.fY, time);

@@ -1,15 +1,16 @@
 #include <cmath>
 #include "Enemy.h"
-//#include "Engine.h"
+#include "Engine.h"
 
 Enemy::Enemy(float x, float y, float size)
 {
 	this->x = x;
 	this->y = y;
 	this->size = size;
-	fspeed = 0.0f;//0.0001f;
+	fspeed = 0.0005f;
 	textureWidth = 4;
 	textureHeight = 4;
+	fViewRad = 3.0f;
 	isDestroy = false;
 	InitTexture();
 }
@@ -29,22 +30,30 @@ void Enemy::InitTexture()
 		}
 }
 
-void Enemy::Move(int plX, int plY, float time)
+void Enemy::Move(float plX, float plY, float time, std::string &map)
+{
+	if (!isDestroy)
 	{
-		if (!isDestroy)
-		{
-			float distance = sqrt(pow(x - plX, 2) + pow(y - plY, 2));
+		float distance = sqrt(pow(x - plX, 2) + pow(y - plY, 2));
+		if (distance < fViewRad)
 			if (distance > size + 0.2f)
 			{
 				float dx = (plX - x) / distance;
 				float dy = (plY - y) / distance;
-				x += dx * fspeed * time;
-				y += dy * fspeed * time;
+				float testX = x + dx * fspeed * time;
+				float testY = y + dy * fspeed * time;
+				if (map[testY * MapWidth + testX] != '#')
+				{
+					x = testX;
+					y = testY;	
+				}
 			}
-		}
 	}
+}
 
-/*bool operator<(Enemy& en1, Enemy& en2)
+extern player Player;
+
+bool operator<(Enemy& en1, Enemy& en2)
 {
 	float dist1 = sqrt(pow(Player.fX - en1.getX(), 2) + pow(Player.fY - en1.getY(), 2));
 	float dist2 = sqrt(pow(Player.fX - en2.getX(), 2) + pow(Player.fY - en2.getY(), 2));
@@ -63,5 +72,5 @@ int operator==(Enemy& en1, Enemy& en2)
 	float dist1 = sqrt(pow(Player.fX - en1.getX(), 2) + pow(Player.fY - en1.getY(), 2));
 	float dist2 = sqrt(pow(Player.fX - en2.getX(), 2) + pow(Player.fY - en2.getY(), 2));
 	return dist1 == dist2;
-}*/
+}
 

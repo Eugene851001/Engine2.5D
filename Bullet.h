@@ -1,6 +1,6 @@
 #ifndef BULLET_H
 #define BULLET_H
-#include "Enemy.h"//replace with 'object'
+#include "Enemy.h"
 #include <iostream>
 #include <list>
 
