@@ -284,11 +284,28 @@ void DrawEnemyes(char* screen)
 	}
 }
 
+//repair
+void SortEnemyes()
+{
+	Enemy *temp = new Enemy(0.0f, 0.0f, 0.0f);
+	for (Enemy *pEnemyI : enemyes)
+	{
+		for (Enemy *pEnemyJ : enemyes)
+			if (*pEnemyI > *pEnemyJ)
+			{
+				*temp = *pEnemyI;
+				*pEnemyI = *pEnemyJ;
+				*pEnemyJ = *temp;
+			}
+	}
+}
+
 
 //Add sort to enemyes and  maybe bullets
 void UpdateEnemyes()
 {
-	enemyes.sort();
+	//enemyes.sort();
+	SortEnemyes();
 	float size;
 	for (Enemy *pEnemy: enemyes)
 	{

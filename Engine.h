@@ -30,11 +30,13 @@ typedef struct MyPlayer
 	float fAngleSpeed;// = 0.001f;
 	float tmReload;// = 1000.0f;
 	float tmAfterShoot;// = 1000.0f;
+	float fSize;
 	MyPlayer()
 	{
 		fX = 8.0f;
 		fY = 8.0f;
 		fAngle = 0.0f;
+		fSize = 0.3f;
 		fSpeed = 0.001f;
 		fAngleSpeed = 0.001f;
 		tmReload = 1000.0f;

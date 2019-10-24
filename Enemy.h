@@ -1,6 +1,7 @@
 #ifndef ENEMY_H
 #define ENEMY_H
 #include <iostream>
+const char EMPTY = ' ';
 
 class Enemy
 {
@@ -13,13 +14,17 @@ protected:
 	int textureWidth;// = 4;
 	int textureHeight;// = 4;
 	bool isDestroy;// = false;
-	bool operator < (const Enemy &en2);
-	bool operator>(Enemy &en2);
+	int FrameNum, FrameAmount;
+	float tmLastFrame, tmFramePeriod;
+	char ***Frames;
+	virtual void InitFrames();
+	void Animate(float time);
+public:
 	bool operator==(Enemy &en2);
 	bool operator>=(Enemy &en2);
-public:
-
-	char texture[4][4];/* = { {'$', '$', '$', '$'},
+	bool operator < (Enemy &en2);
+	bool operator>(Enemy &en2);
+	char **texture;/* = { {'$', '$', '$', '$'},
 						   {' ', '$', '$', ' '},
 						   {'$', '$', '$', '$'},
 						   {'$', ' ', ' ', '$'} };*/
@@ -27,7 +32,7 @@ public:
 	
 	virtual void Move(float plX, float plY, float time, std::string &map);
 	
-	void InitTexture(); 
+	virtual void InitTexture(); 
 	float getX() const
 	{
 		return x;

@@ -1,0 +1,37 @@
+﻿  Bullet.cpp
+C:\Users\evgeny\Source\repos\DebugEngine\Engine.h(12,1): warning C4005:  max: изменение макроопределения
+C:\Program Files (x86)\Windows Kits\10\Include\10.0.17763.0\shared\minwindef.h(193): message :  см. предыдущее определение "max"
+C:\Users\evgeny\Source\repos\DebugEngine\Engine.h(20,35): warning C4305:  инициализация: усечение из "double" в "float"
+  Class.cpp
+  Enemy.cpp
+C:\Users\evgeny\Source\repos\DebugEngine\Bullet.cpp(26,13): warning C4244:  инициализация: преобразование "float" в "int", возможна потеря данных
+C:\Users\evgeny\Source\repos\DebugEngine\Engine.h(12,1): warning C4005:  max: изменение макроопределения
+C:\Program Files (x86)\Windows Kits\10\Include\10.0.17763.0\shared\minwindef.h(193): message :  см. предыдущее определение "max"
+  EnemySoldier.cpp
+  Source.cpp
+C:\Users\evgeny\Source\repos\DebugEngine\Engine.h(20,35): warning C4305:  инициализация: усечение из "double" в "float"
+C:\Users\evgeny\Source\repos\DebugEngine\Engine.h(12,1): warning C4005:  max: изменение макроопределения
+C:\Program Files (x86)\Windows Kits\10\Include\10.0.17763.0\shared\minwindef.h(193): message :  см. предыдущее определение "max"
+C:\Users\evgeny\Source\repos\DebugEngine\Engine.h(20,35): warning C4305:  инициализация: усечение из "double" в "float"
+C:\Users\evgeny\Source\repos\DebugEngine\Source.cpp(177,15): warning C4244:  инициализация: преобразование "float" в "int", возможна потеря данных
+C:\Users\evgeny\Source\repos\DebugEngine\Source.cpp(183,16): warning C4309:  =: усечение константного значения
+C:\Users\evgeny\Source\repos\DebugEngine\Source.cpp(186,17): warning C4309:  =: усечение константного значения
+C:\Users\evgeny\Source\repos\DebugEngine\Source.cpp(188,17): warning C4309:  =: усечение константного значения
+C:\Users\evgeny\Source\repos\DebugEngine\Source.cpp(217,26): warning C4305:  -=: усечение из "double" в "float"
+C:\Users\evgeny\Source\repos\DebugEngine\Source.cpp(219,26): warning C4305:  +=: усечение из "double" в "float"
+C:\Users\evgeny\Source\repos\DebugEngine\Source.cpp(222,22): warning C4305:  +=: усечение из "double" в "float"
+C:\Users\evgeny\Source\repos\DebugEngine\Source.cpp(246,45): warning C4244:  аргумент: преобразование "double" в "float", возможна потеря данных
+C:\Users\evgeny\Source\repos\DebugEngine\Source.cpp(247,45): warning C4244:  аргумент: преобразование "double" в "float", возможна потеря данных
+C:\Users\evgeny\Source\repos\DebugEngine\Source.cpp(259,16): warning C4244:  инициализация: преобразование "float" в "int", возможна потеря данных
+C:\Users\evgeny\Source\repos\DebugEngine\Source.cpp(262,17): warning C4244:  инициализация: преобразование "float" в "int", возможна потеря данных
+C:\Users\evgeny\Source\repos\DebugEngine\Source.cpp(265,10): warning C4244:  инициализация: преобразование "float" в "int", возможна потеря данных
+C:\Users\evgeny\Source\repos\DebugEngine\Source.cpp(311,8): warning C4101:  size: неиспользованная локальная переменная
+C:\Users\evgeny\Source\repos\DebugEngine\Source.cpp(396,27): warning C4305:  -=: усечение из "double" в "float"
+C:\Users\evgeny\Source\repos\DebugEngine\Source.cpp(398,27): warning C4305:  +=: усечение из "double" в "float"
+C:\Users\evgeny\Source\repos\DebugEngine\Source.cpp(401,19): warning C4305:  +=: усечение из "double" в "float"
+C:\Users\evgeny\Source\repos\DebugEngine\Source.cpp(414,16): warning C4244:  инициализация: преобразование "float" в "int", возможна потеря данных
+C:\Users\evgeny\Source\repos\DebugEngine\Source.cpp(417,10): warning C4244:  инициализация: преобразование "float" в "int", возможна потеря данных
+C:\Users\evgeny\Source\repos\DebugEngine\Source.cpp(462,14): warning C4244:  инициализация: преобразование "int" в "float", возможна потеря данных
+  Создание кода...
+C:\Users\evgeny\Source\repos\DebugEngine\Source.cpp(470,7): warning C4101:  j: неиспользованная локальная переменная
+  DebugEngine.vcxproj -> C:\Users\evgeny\Source\repos\DebugEngine\Debug\DebugEngine.exe
