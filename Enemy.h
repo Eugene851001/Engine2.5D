@@ -20,10 +20,10 @@ protected:
 	virtual void InitFrames();
 	void Animate(float time);
 public:
-	bool operator==(Enemy &en2);
-	bool operator>=(Enemy &en2);
-	bool operator < (Enemy &en2);
-	bool operator>(Enemy &en2);
+	bool operator==(const Enemy &en2) const; 
+	bool operator>=(const Enemy &en2)const;
+	bool operator < (const Enemy &en2)const;
+	bool operator>(const Enemy &en2)const;
 	char **texture;/* = { {'$', '$', '$', '$'},
 						   {' ', '$', '$', ' '},
 						   {'$', '$', '$', '$'},

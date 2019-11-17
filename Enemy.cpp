@@ -19,7 +19,7 @@ Enemy::Enemy(float x, float y, float size)
 	InitFrames();
 }
 
-void Enemy::InitTexture()
+void Enemy::InitTexture() 
 {
 	texture = new char*[textureHeight];
 	for (int i = 0; i < textureWidth; i++)
@@ -113,21 +113,21 @@ void Enemy::Move(float plX, float plY, float time, std::string &map)
 
 extern player Player;
 
-bool Enemy::operator < (Enemy &en2)
+bool Enemy::operator < (const Enemy &en2) const
 {
 	float dist1 = sqrt(pow(Player.fX - this->getX(), 2) + pow(Player.fY - this->getY(), 2));
 	float dist2 = sqrt(pow(Player.fX - en2.getX(), 2) + pow(Player.fY - en2.getY(), 2));
 	return dist1 < dist2;	
 }
 
-bool Enemy::operator>(Enemy &en2)
+bool Enemy::operator>(const Enemy &en2) const
 {
 	float dist1 = sqrt(pow(Player.fX - this->getX(), 2) + pow(Player.fY - this->getY(), 2));
 	float dist2 = sqrt(pow(Player.fX - en2.getX(), 2) + pow(Player.fY - en2.getY(), 2));
 	return dist1 > dist2;	
 }
 
-bool Enemy::operator==(Enemy &en2)
+bool Enemy::operator==(const Enemy &en2) const
 {
 	float dist1 = sqrt(pow(Player.fX - this->getX(), 2) + pow(Player.fY - this->getY(), 2));
 	float dist2 = sqrt(pow(Player.fX - en2.getX(), 2) + pow(Player.fY - en2.getY(), 2));

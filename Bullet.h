@@ -1,6 +1,7 @@
 #ifndef BULLET_H
 #define BULLET_H
 #include "Enemy.h"
+#include "Engine.h"
 #include <iostream>
 #include <list>
 
@@ -35,6 +36,11 @@ public:
 	void setDestroy(bool value)
 	{
 		isDestroy = value;
+	}
+
+	int GetDamage()
+	{
+		return Damage;
 	}
 };
 

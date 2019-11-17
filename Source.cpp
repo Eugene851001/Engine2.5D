@@ -2,7 +2,37 @@
 #include "Enemy.h"
 #include "EnemySoldier.h"
 #include "Bullet.h"
+#include "DrawLetter.h"
+#include "EventHadler.h"
+#include "Menu.h"
+#define _CRT_SECURE_NO_WARNINGS
 
+//TODO: add to Engine.h
+#define SOUND_RATE 44100
+#define SOUND_LENGTH 4
+
+typedef struct _WAVEFile
+{
+	char chunkId[4];
+	long chunkSize;
+	char format[4];
+	char subchunk1Id[4];
+	long subchunk1Size;
+	PCMWAVEFORMAT fmt;
+	char subchunk2Id[4];
+	long subchunk2Size;
+	short data[SOUND_RATE * SOUND_LENGTH];
+} WAVEFile, * PWAVEFile;
+
+WAVEFile wf = { {'R', 'I', 'F', 'F'}, sizeof(WAVEFile) - 8, {'W', 'A', 'V', 'E'}, {'f', 'm', 't', ' '}, sizeof(PCMWAVEFORMAT),
+				{WAVE_FORMAT_PCM, 1, SOUND_RATE, SOUND_RATE * 2, 2, 16},
+				{'d', 'a', 't', 'a'}, sizeof(wf.data) };
+CONSOLE_FONT_INFOEX font;
+HANDLE hConsole;
+char* sndBuf;
+const char* SoundFileName = "gun-gunshot-01.wav";
+GameState gameState;
+//---------------------------
 
 using namespace std;
 
@@ -11,6 +41,8 @@ player Player;
 string map = "";
 list<Enemy*> enemyes;
 list<Bullet*> bullets;
+HMIDIOUT hMdiOut;
+DWORD note;
 
 void CreateMap()
 {
@@ -63,14 +95,12 @@ bool isCollision(float x, float y)
 	return isCollision;
 }
 
-void MovePlayer(float time, char* screen)
+void MovePlayer(float time)
 {
 	if (GetAsyncKeyState('A'))
 		Player.fAngle -= Player.fAngleSpeed * time;
 	if (GetAsyncKeyState('D'))
 		Player.fAngle += Player.fAngleSpeed * time;
-	if (GetAsyncKeyState('P'))
-		makeScreenShoot(screen);
 	if (GetAsyncKeyState('W'))
 	{
 		float testX = Player.fX + Player.fSpeed * cosf(Player.fAngle) * time;
@@ -96,12 +126,32 @@ void MovePlayer(float time, char* screen)
 		//	Player.tmAfterShoot += time;
 		if (Player.tmReload < Player.tmAfterShoot)
 		{
-			bullets.push_back(new Bullet(Player.fX, Player.fY,
+			sndPlaySound("gun-gunshot-01.wav", SND_ASYNC);
+			/*note = rand() % 128;
+			midiOutShortMsg(hMdiOut, 0x7F0090 | (note<<8));*/
+			float x = Player.fX + (Player.fSize + 0.1f) * cosf(Player.fAngle);
+			float y = Player.fY + (Player.fSize + 0.1f) * sinf(Player.fAngle);
+			bullets.push_back(new Bullet(x, y,
 				cosf(Player.fAngle), sinf(Player.fAngle)));
 			Player.tmAfterShoot = 0;
 		}
 	}
 	Player.tmAfterShoot += time;
+}
+
+void LoadSound()
+{
+	int size;
+	ifstream f(SoundFileName);
+	if (f.is_open())
+	{
+		f.seekg(0, ios_base::end);
+		size = f.tellg();
+		sndBuf = new char[size];
+		f.seekg(0, ios_base::beg);
+		f.read(sndBuf, size);
+		f.close();
+	}
 }
 
 void makeScreenShoot(char* screen)
@@ -114,7 +164,7 @@ void makeScreenShoot(char* screen)
 	fclose(f);*/
 }
 
-void PrintLine(char* screen, char* strBuf, int left, int height)
+void PrintLine(char* screen, int ScreenWidth, char *strBuf, int left, int height)
 {
 	int i, j = 0;
 	for (i = ScreenWidth - left; i < ScreenWidth && strBuf[j] != '\0'; i++, j++)
@@ -123,25 +173,28 @@ void PrintLine(char* screen, char* strBuf, int left, int height)
 
 void DrawInterface(char* screen, float time)
 {
-	/*if (!time)
+	if (!time)
 		time = 1;
 	time = time / CLOCKS_PER_SEC;
 	float FPS = 1000 / time;
 	char strBuf[20] = "         ";
-	sprintf(strBuf, "%f", FPS);
+	sprintf_s(strBuf, "%f", FPS);
 	int i = 0, j = 0;
-	PrintLine(screen, strBuf, 15, 0);
+	PrintLine(screen, ScreenWidth, strBuf, 15, 0);
 	int angle = Player.fAngle * 180 / PI;
 	//strFPS = "         ";
 	j = 0;
-	itoa(angle, strBuf, 10);
-	PrintLine(screen, strBuf, 10, 1);
-	sprintf(strBuf, "%f", Player.fX);
+	_itoa_s(angle, strBuf, 10);
+	PrintLine(screen, ScreenWidth, strBuf, 10, 1);
+	sprintf_s(strBuf, "%f", Player.fX);
 	screen[ScreenWidth * 2 + ScreenWidth - 10] = 'X';
-	PrintLine(screen, strBuf, 5, 2);
+	PrintLine(screen, ScreenWidth, strBuf, 5, 2);
 	screen[ScreenWidth * 3 + ScreenWidth - 10] = 'Y';
-	sprintf(strBuf, "%f", Player.fY);
-	PrintLine(screen, strBuf, 5, 3);
+	sprintf_s(strBuf, "%f", Player.fY);
+	PrintLine(screen, ScreenWidth, strBuf, 5, 3);
+	sprintf_s(strBuf, "%d", Player.HP);
+	//PrintLine(screen, , 5, 4);
+	PrintLine(screen, ScreenWidth, strBuf, 3, 4);
 	/*j = 0;
 	for (i = ScreenWidth - 5; i < ScreenWidth && strBuf[j] != '\0'; i++, j++)
 		screen[ScreenWidth * 2 + i] = strBuf[j];*/
@@ -306,8 +359,8 @@ void SortEnemyes()
 //Add sort to enemyes and  maybe bullets
 void UpdateEnemyes()
 {
-	//enemyes.sort();
-	SortEnemyes();
+	enemyes.sort([](const Enemy* en1, const Enemy* en2) {return *en1 < *en2; });
+	//SortEnemyes();
 	float size;
 	for (Enemy* pEnemy : enemyes)
 	{
@@ -331,11 +384,13 @@ void UpdateEnemyes()
 	{
 		if ((*pEnemy)->getDestroy())
 		{
-			pTemp = pEnemy;
-			pTemp++;
+			//pTemp = pEnemy;
+			//pTemp++;
 			delete* pEnemy;
 			enemyes.remove(*pEnemy);
-			pEnemy = pTemp;
+			if (enemyes.size() > 0)
+				//pEnemy = pTemp;
+				pEnemy = enemyes.begin();
 		}
 		else
 			pEnemy++;
@@ -367,6 +422,18 @@ void DrawCircle(int x, int y, int Rad, char shade, char* screen)
 
 void UpdateBullets()
 {
+	for (Bullet *pBullet : bullets)
+		if (pBullet->getX() > Player.fX - Player.fSize
+			&& pBullet->getX() < Player.fX + Player.fSize
+			&& pBullet->getY() > Player.fY - Player.fSize
+			&& pBullet->getY() < Player.fY + Player.fSize)
+		{
+			if (!pBullet->getDestroy())
+			{
+				pBullet->setDestroy(true);
+				Player.HP -= pBullet->GetDamage();
+			}
+		}
 	list<Bullet*>::iterator p = bullets.begin();
 	list<Bullet*>::iterator ptemp = p;
 	while (p != bullets.end() && bullets.size() > 0)
@@ -443,48 +510,108 @@ void MoveBullets(float time)
 		pBullet->Move(map, time, enemyes);
 }
 
+void DrawRect(char *screen, int ScreenWidth, int x, 
+	int y, int Width, int Height, char Fill)
+{
+	int i, j;
+	for (i = 0; i < Height; i++)
+		for (j = 0; j < Width; j++)
+			screen[(y + i) * ScreenWidth + j + x] = Fill;
+}
+
+void DrawMainMenu(char *MainMenuScreen, Menu &menu)
+{
+	DWORD dwBytes = 0;
+	memset(MainMenuScreen, ' ', MenuWidth * MenuHeight);
+	DrawRect(MainMenuScreen, MenuWidth, 2, 2 * (int)menu.GetIP(), 9, 3, '#');
+	char strBuf[20] = "start";
+	PrintLine(MainMenuScreen, MenuWidth, strBuf, 9, 1);
+	sprintf_s(strBuf, "%s", "levels");
+	PrintLine(MainMenuScreen, MenuWidth, strBuf, 9, 3);
+	sprintf_s(strBuf, "%s", "options");
+	PrintLine(MainMenuScreen, MenuWidth, strBuf, 9, 5);
+	sprintf_s(strBuf, "%s", "Quit");
+	PrintLine(MainMenuScreen, MenuWidth, strBuf, 9, 7);
+	WriteConsoleOutputCharacter(hConsole, MainMenuScreen, MenuWidth * MenuHeight, { 0, 0 }, &dwBytes);
+}
+
 int main() {
+	char Titles[BUF_SIZE];
+	gameState = gsMainMenu;
+	SetConsoleTitle("wolfenstein 3d");
+	midiOutOpen(&hMdiOut, MIDI_MAPPER, 0, 0, CALLBACK_NULL);
 	CreateMap();
 	char* screen = new char[ScreenWidth * ScreenHeight];
-	screen[20 * 120 + 60] = 'L';
-	HANDLE hConsole = CreateConsoleScreenBuffer(GENERIC_READ | GENERIC_WRITE,
+	char* MainMenuScreen = new char[MenuWidth * MenuHeight];
+	hConsole = CreateConsoleScreenBuffer(GENERIC_READ | GENERIC_WRITE,
 		0, NULL, CONSOLE_TEXTMODE_BUFFER, NULL);
 	DWORD dwBytes = 0;
+	//SetConsoleTextAttribute(hConsole, FOREGROUND_BLUE | FOREGROUND_RED | FOREGROUND_INTENSITY);
 	SetConsoleActiveScreenBuffer(hConsole);
+	HANDLE hout = GetStdHandle(STD_OUTPUT_HANDLE);
+	COORD point;
+	point.X = 0;
+	point.Y = 0;
+	DWORD l;
+	//FillConsoleOutputAttribute(hConsole, 60, 120, point, &l);
+	GetConsoleTitle(Titles, BUF_SIZE);
+	font.cbSize = sizeof(CONSOLE_FONT_INFOEX);
+	font.nFont = 0;
+	font.FontFamily = 0;
+	font.FontWeight = 400;
+	font.dwFontSize.X = 32;
+	font.dwFontSize.Y = 64;
+	SetCurrentConsoleFontEx(hConsole, true, &font);
+	/*COORD dimensioin;
+	dimensioin.X = 600;
+	dimensioin.Y = 700;
+	SetConsoleDisplayMode(hConsole, CONSOLE_WINDOWED_MODE, &dimensioin);*/
 	AddEnemyes();
+	EventHandler event;
 	int tm1 = clock();
 	int tm2 = clock();
-
-	bool IsContinue = true;
-	while (IsContinue)
+	Menu menu(map);
+	gameState = gsMainMenu;
+	while (gameState == gsMainMenu)
+	{
+		DrawMainMenu(MainMenuScreen, menu);
+		event.Update();
+		if (event.isKeyUp(' '))
+			gameState = menu.Move(IN);
+		if (event.isKeyUp('W'))
+			gameState = menu.Move(DOWN);
+		if (event.isKeyUp('S'))
+			gameState = menu.Move(UP);
+	}
+	font.cbSize = sizeof(CONSOLE_FONT_INFOEX);
+	font.nFont = 0;
+	font.FontFamily = 0;
+	font.FontWeight = 400;
+	font.dwFontSize.X = 8;
+	font.dwFontSize.Y = 8;
+	SetCurrentConsoleFontEx(hConsole, true, &font);
+	LoadSound();
+	while (gameState == gsRun)
 	{
 		tm1 = clock();
 		float time = (tm1 - tm2);
 		tm2 = tm1;
 		list<Enemy*>::iterator pEnemy = enemyes.begin();
-		MovePlayer(time, screen);
+		MovePlayer(time);
 		MoveEnemyes(time);
 		UpdateBullets();
 		UpdateEnemyes();
-		//enemy.Move(Player.fX, Player.fY, time);
-		int j;
 		MoveBullets(time);
-		/*	list<Bullet*>::iterator p = bullets.begin();
-			while (p != bullets.end())
-			{
-				(*p)->Move(map, time, enemyes);
-				p++;
-			}*/
-			//draw walls and floor
 		DrawWalls(screen);
 		DrawEnemyes(screen);
 		DrawBullets(screen);
 		DrawMap(screen, MapHeigth, MapWidth, ScreenWidth);
-		DrawInterface(screen, time);
-		//DrawCircle(10, 10, 4, '@', screen);		
-		screen[ScreenWidth * ScreenHeight - 1] = '\0';
+		DrawInterface(screen, time);	
+		screen[ScreenWidth * ScreenHeight - 1] = '\0';	
 		WriteConsoleOutputCharacter(hConsole, screen, ScreenWidth * ScreenHeight, { 0, 0 }, &dwBytes);
+		if (Player.HP <= 0)
+			gameState = gsPause;
 	}
-
+	//midiOutClose(hMdiOut);
 	return 0;
 }

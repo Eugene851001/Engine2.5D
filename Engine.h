@@ -1,6 +1,8 @@
 #ifndef ENGINE_H
 #define ENGINE_H
 
+#pragma comment(lib, "winmm.lib")
+#include <fstream>
 #include <iostream>
 #include <cmath>
 #include <ctime>
@@ -10,10 +12,14 @@
 #define BULLET_SHADE '@'
 #define OUTPUT "Photo.txt"
 #define max(a, b) ((a) > (b)) ? a : b
+#define BUF_SIZE 30
+#define	SLEEP_TIME 5000
+
+enum GameState {gsMainMenu, gsRun, gsPause, gsQuit};
 
 void makeScreenShoot(char* screen);
 const int ScreenWidth = 120;
-const int ScreenHeight = 40;
+const int ScreenHeight = 120;
 const int MapWidth = 16;
 const int MapHeigth = 16;
 
@@ -23,6 +29,7 @@ const float fDepth = 16.0f;
 
 typedef struct MyPlayer
 {
+	int HP;
 	float fX;
 	float fY;// = 8.0f;
 	float fAngle;// = 0.0f;
@@ -33,6 +40,7 @@ typedef struct MyPlayer
 	float fSize;
 	MyPlayer()
 	{
+		HP = 20;
 		fX = 8.0f;
 		fY = 8.0f;
 		fAngle = 0.0f;
