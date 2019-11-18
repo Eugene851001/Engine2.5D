@@ -111,26 +111,26 @@ void Enemy::Move(float plX, float plY, float time, std::string &map)
 	}
 }
 
-extern player Player;
+extern Player player;
 
 bool Enemy::operator < (const Enemy &en2) const
 {
-	float dist1 = sqrt(pow(Player.fX - this->getX(), 2) + pow(Player.fY - this->getY(), 2));
-	float dist2 = sqrt(pow(Player.fX - en2.getX(), 2) + pow(Player.fY - en2.getY(), 2));
+	float dist1 = sqrt(pow(player.fX - this->getX(), 2) + pow(player.fY - this->getY(), 2));
+	float dist2 = sqrt(pow(player.fX - en2.getX(), 2) + pow(player.fY - en2.getY(), 2));
 	return dist1 < dist2;	
 }
 
 bool Enemy::operator>(const Enemy &en2) const
 {
-	float dist1 = sqrt(pow(Player.fX - this->getX(), 2) + pow(Player.fY - this->getY(), 2));
-	float dist2 = sqrt(pow(Player.fX - en2.getX(), 2) + pow(Player.fY - en2.getY(), 2));
+	float dist1 = sqrt(pow(player.fX - this->getX(), 2) + pow(player.fY - this->getY(), 2));
+	float dist2 = sqrt(pow(player.fX - en2.getX(), 2) + pow(player.fY - en2.getY(), 2));
 	return dist1 > dist2;	
 }
 
 bool Enemy::operator==(const Enemy &en2) const
 {
-	float dist1 = sqrt(pow(Player.fX - this->getX(), 2) + pow(Player.fY - this->getY(), 2));
-	float dist2 = sqrt(pow(Player.fX - en2.getX(), 2) + pow(Player.fY - en2.getY(), 2));
+	float dist1 = sqrt(pow(player.fX - this->getX(), 2) + pow(player.fY - this->getY(), 2));
+	float dist2 = sqrt(pow(player.fX - en2.getX(), 2) + pow(player.fY - en2.getY(), 2));
 	return dist1 == dist2;	
 }
 

@@ -27,7 +27,7 @@ const float fViewAngle = PI / 4.0f;
 const float fViewRad = 10.0f;
 const float fDepth = 16.0f;
 
-typedef struct MyPlayer
+typedef struct _Player
 {
 	int HP;
 	float fX;
@@ -38,7 +38,7 @@ typedef struct MyPlayer
 	float tmReload;// = 1000.0f;
 	float tmAfterShoot;// = 1000.0f;
 	float fSize;
-	MyPlayer()
+	_Player()
 	{
 		HP = 20;
 		fX = 8.0f;
@@ -48,9 +48,9 @@ typedef struct MyPlayer
 		fSpeed = 0.001f;
 		fAngleSpeed = 0.001f;
 		tmReload = 1000.0f;
-		tmAfterShoot = 1000.0f;		
+		tmAfterShoot = 1000.0f;
 	}
-} player;
+} Player;
 
 #endif
 

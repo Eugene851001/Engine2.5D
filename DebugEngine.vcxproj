@@ -126,7 +126,6 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="Bullet.cpp" />
-    <ClCompile Include="Class.cpp" />
     <ClCompile Include="Enemy.cpp" />
     <ClCompile Include="EnemySoldier.cpp" />
     <ClCompile Include="EventHadler.cpp" />
@@ -140,8 +139,6 @@
     <ClInclude Include="EnemySoldier.h" />
     <ClInclude Include="Engine.h" />
     <ClInclude Include="EventHadler.h" />
-    <ClInclude Include="Header.h" />
-    <ClInclude Include="DrawLetter.h" />
     <ClInclude Include="Menu.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

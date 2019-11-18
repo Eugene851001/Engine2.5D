@@ -21,7 +21,7 @@ void EnemySoldier::InitFrames()
 
 }
 
-extern std::list<Bullet*> bullets;
+extern std::list<Bullet> bullets;
 
 void EnemySoldier::Attack(float plX, float plY, float time)
 {
@@ -31,7 +31,7 @@ void EnemySoldier::Attack(float plX, float plY, float time)
 		float dx = (plX - x) / distance;
 		float dy = (plY - y) / distance;
 		//Bullet *myBullet = new Bullet(x, y, dx, dy);
-		bullets.push_back(new Bullet(x + (size + 0.1f) * dx, 
+		bullets.push_back(Bullet(x + (size + 0.1f) * dx, 
 			y + (size + 0.1f) * dy, dx, dy));
 		tmAfterShoot = 0;	
 	}

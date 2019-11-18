@@ -2,12 +2,13 @@
 #include "Enemy.h"
 #include "EnemySoldier.h"
 #include "Bullet.h"
-#include "DrawLetter.h"
 #include "EventHadler.h"
 #include "Menu.h"
 #define _CRT_SECURE_NO_WARNINGS
 
 //TODO: add to Engine.h
+float DepthBuf[ScreenWidth];
+Player player;
 #define SOUND_RATE 44100
 #define SOUND_LENGTH 4
 
@@ -36,11 +37,9 @@ GameState gameState;
 
 using namespace std;
 
-player Player;
-
 string map = "";
 list<Enemy*> enemyes;
-list<Bullet*> bullets;
+list<Bullet> bullets;
 HMIDIOUT hMdiOut;
 DWORD note;
 
@@ -77,7 +76,7 @@ void DrawMap(char* screen, int MapHeight, int MapWidth, int ScreenWidth)
 		}
 		i = y * ScreenWidth;
 	}
-	screen[(int)Player.fY * ScreenWidth - ScreenWidth + (int)Player.fX] = 'P';
+	screen[(int)player.fY * ScreenWidth - ScreenWidth + (int)player.fX] = 'P';
 }
 
 bool isCollision(float x, float y)
@@ -98,45 +97,45 @@ bool isCollision(float x, float y)
 void MovePlayer(float time)
 {
 	if (GetAsyncKeyState('A'))
-		Player.fAngle -= Player.fAngleSpeed * time;
+		player.fAngle -= player.fAngleSpeed * time;
 	if (GetAsyncKeyState('D'))
-		Player.fAngle += Player.fAngleSpeed * time;
+		player.fAngle += player.fAngleSpeed * time;
 	if (GetAsyncKeyState('W'))
 	{
-		float testX = Player.fX + Player.fSpeed * cosf(Player.fAngle) * time;
-		float testY = Player.fY + Player.fSpeed * sinf(Player.fAngle) * time;
+		float testX = player.fX + player.fSpeed * cosf(player.fAngle) * time;
+		float testY = player.fY + player.fSpeed * sinf(player.fAngle) * time;
 		if (map[(int)testY * MapWidth + (int)testX] != '#' && !isCollision(testX, testY))
 		{
-			Player.fX = testX;
-			Player.fY = testY;
+			player.fX = testX;
+			player.fY = testY;
 		}
 	}
 	if (GetAsyncKeyState('S'))
 	{
-		float testX = Player.fX - Player.fSpeed * cosf(Player.fAngle) * time;
-		float testY = Player.fY - Player.fSpeed * sinf(Player.fAngle) * time;
+		float testX = player.fX - player.fSpeed * cosf(player.fAngle) * time;
+		float testY = player.fY - player.fSpeed * sinf(player.fAngle) * time;
 		if (map[(int)testY * MapWidth + (int)testX] != '#' && !isCollision(testX, testY))
 		{
-			Player.fX = testX;
-			Player.fY = testY;
+			player.fX = testX;
+			player.fY = testY;
 		}
 	}
 	if (GetAsyncKeyState(' '))
 	{
 		//	Player.tmAfterShoot += time;
-		if (Player.tmReload < Player.tmAfterShoot)
+		if (player.tmReload < player.tmAfterShoot)
 		{
-			sndPlaySound("gun-gunshot-01.wav", SND_ASYNC);
+			//sndPlaySound("gun-gunshot-01.wav", SND_ASYNC);
 			/*note = rand() % 128;
 			midiOutShortMsg(hMdiOut, 0x7F0090 | (note<<8));*/
-			float x = Player.fX + (Player.fSize + 0.1f) * cosf(Player.fAngle);
-			float y = Player.fY + (Player.fSize + 0.1f) * sinf(Player.fAngle);
-			bullets.push_back(new Bullet(x, y,
-				cosf(Player.fAngle), sinf(Player.fAngle)));
-			Player.tmAfterShoot = 0;
+			float b_x = player.fX + ( player.fSize + 0.1f) * cosf(player.fAngle);
+			float b_y = player.fY + (player.fSize + 0.1f) * sinf(player.fAngle);
+			Bullet bullet(b_x, b_y, cosf(player.fAngle), sinf(player.fAngle));
+			bullets.push_back(bullet);
+			player.tmAfterShoot = 0;
 		}
 	}
-	Player.tmAfterShoot += time;
+	player.tmAfterShoot += time;
 }
 
 void LoadSound()
@@ -181,18 +180,18 @@ void DrawInterface(char* screen, float time)
 	sprintf_s(strBuf, "%f", FPS);
 	int i = 0, j = 0;
 	PrintLine(screen, ScreenWidth, strBuf, 15, 0);
-	int angle = Player.fAngle * 180 / PI;
+	int angle = player.fAngle * 180 / PI;
 	//strFPS = "         ";
 	j = 0;
 	_itoa_s(angle, strBuf, 10);
 	PrintLine(screen, ScreenWidth, strBuf, 10, 1);
-	sprintf_s(strBuf, "%f", Player.fX);
+	sprintf_s(strBuf, "%f", player.fX);
 	screen[ScreenWidth * 2 + ScreenWidth - 10] = 'X';
 	PrintLine(screen, ScreenWidth, strBuf, 5, 2);
 	screen[ScreenWidth * 3 + ScreenWidth - 10] = 'Y';
-	sprintf_s(strBuf, "%f", Player.fY);
+	sprintf_s(strBuf, "%f", player.fY);
 	PrintLine(screen, ScreenWidth, strBuf, 5, 3);
-	sprintf_s(strBuf, "%d", Player.HP);
+	sprintf_s(strBuf, "%d", player.HP);
 	//PrintLine(screen, , 5, 4);
 	PrintLine(screen, ScreenWidth, strBuf, 3, 4);
 	/*j = 0;
@@ -205,7 +204,7 @@ void DrawWalls(char* screen)
 	int x;
 	for (x = 0; x < ScreenWidth; x++)
 	{
-		float fRayAngle = (Player.fAngle - fViewAngle / 2.0f) + ((float)x / ScreenWidth) * fViewAngle;
+		float fRayAngle = (player.fAngle - fViewAngle / 2.0f) + ((float)x / ScreenWidth) * fViewAngle;
 
 		float fWallDistance = 0;
 		bool isWall = false;
@@ -213,8 +212,8 @@ void DrawWalls(char* screen)
 		while (!isWall)
 		{
 			fWallDistance += 0.1f;
-			int TestX = (int)(Player.fX + cosf(fRayAngle) * fWallDistance);
-			int TestY = (int)(Player.fY + sinf(fRayAngle) * fWallDistance);
+			int TestX = (int)(player.fX + cosf(fRayAngle) * fWallDistance);
+			int TestY = (int)(player.fY + sinf(fRayAngle) * fWallDistance);
 
 			if (TestX < 0 || TestX >= MapWidth || TestY < 0 || TestY >= MapHeigth)
 			{
@@ -227,6 +226,7 @@ void DrawWalls(char* screen)
 					isWall = true;
 			}
 		}
+		DepthBuf[x] = fWallDistance;
 		int Ceiling = (float)(ScreenHeight / 2.0) - ScreenHeight / ((float)fWallDistance);
 		int Floor = ScreenHeight - Ceiling;
 
@@ -266,46 +266,30 @@ void DrawWalls(char* screen)
 //does not work correctly
 void DrawEnemy(char* screen, Enemy* enemy)
 {
-	while (Player.fAngle > 2 * PI)
-		Player.fAngle -= 2 * PI;
-	while (Player.fAngle < 0)
-		Player.fAngle += 2 * PI;
-	float MainAlpha = atan2(enemy->getY() - Player.fY, enemy->getX() - Player.fX);
+	while (player.fAngle > 2 * PI)
+		player.fAngle -= 2 * PI;
+	while (player.fAngle < 0)
+		player.fAngle += 2 * PI;
+	float MainAlpha = atan2(enemy->getY() - player.fY, enemy->getX() - player.fX);
 	if (MainAlpha < 0)
 		MainAlpha += 2 * PI;
 	bool isVisual = false;
-	float fEnemyDistance = sqrt(pow(enemy->getX() - Player.fX, 2) +
-		pow(enemy->getY() - Player.fY, 2));
+	float fEnemyDistance = sqrt(pow(enemy->getX() - player.fX, 2) +
+		pow(enemy->getY() - player.fY, 2));
 	float j;
 	float N = fEnemyDistance / (120.0f + 60.0f);//replace 60.0f
 	for (j = -enemy->getSize(); j < enemy->getSize(); j += N)
 	{
 		float alpha = atan2(j, fEnemyDistance) + MainAlpha;
-		float CheckLow = Player.fAngle - fViewAngle / 2.0f;
-		float CheckHigh = Player.fAngle + fViewAngle / 2.0f;
+		float CheckLow = player.fAngle - fViewAngle / 2.0f;
+		float CheckHigh = player.fAngle + fViewAngle / 2.0f;
 		if (CheckLow < 0)
 			if (alpha < PI / 2.0f && alpha < CheckHigh)
 				isVisual = true;
 			else
 				if (alpha > CheckLow + 2 * PI)
 					isVisual = true;
-		//raytracing 
-		float fRayEnemyDistance = 0, Accuracy = 0.2f;
-		bool isWall = false;
-		bool isPlayer = false;
-		while (!isWall && !isPlayer && fRayEnemyDistance < fEnemyDistance)
-		{
-			fRayEnemyDistance += 0.1f;
-			float testX = enemy->getX() + cosf(alpha - PI) * fRayEnemyDistance;
-			float testY = enemy->getY() + sinf(alpha - PI) * fRayEnemyDistance;
-			if (map[int(testY + 0.5f) * MapWidth + int(testX + 0.5f)] == '#')
-				isWall = true;
-			if (testX > Player.fX - Accuracy && testX < Player.fX + Accuracy
-				&& testY > Player.fY - Accuracy && testY < Player.fY + Accuracy)
-				isPlayer = true;
-		}
-		//------------------------------------------------------
-		if (((alpha > CheckLow && alpha < CheckHigh) || isVisual) && isPlayer)//rename identificators 
+		if ((alpha > CheckLow && alpha < CheckHigh) || isVisual)//rename identificators 
 		{
 			screen[ScreenWidth / 2] = '0';
 			//fEnemyDistance = sqrt(pow(enemy.x - Player.fX, 2) + pow(enemy.y - Player.fY, 2));
@@ -322,8 +306,11 @@ void DrawEnemy(char* screen, Enemy* enemy)
 				{
 					int textureY = (y - Ceiling) * enemy->getTextureHeight() / Height;
 					char Shade = enemy->texture[textureY][textureX];
-					if (Shade != EMPTY)
+					if (Shade != EMPTY && DepthBuf[x] > fEnemyDistance)
+					{
 						screen[y * ScreenWidth + x] = Shade;//ENEMY_SHADE;
+					//	DepthBuf[x] = fEnemyDistance;
+					}
 				}
 			}
 		}
@@ -364,37 +351,27 @@ void UpdateEnemyes()
 	float size;
 	for (Enemy* pEnemy : enemyes)
 	{
-		for (Bullet* pBullet : bullets)
+		for (Bullet &bullet : bullets)
 		{
 			float size = pEnemy->getSize();
-			if (pBullet->getX() > pEnemy->getX() - size
-				&& pBullet->getX() < pEnemy->getX() + size
-				&& pBullet->getY() < pEnemy->getY() + size
-				&& pBullet->getY() > pEnemy->getY() - size)
+			if (bullet.getX() > pEnemy->getX() - size
+				&& bullet.getX() < pEnemy->getX() + size
+				&& bullet.getY() < pEnemy->getY() + size
+				&& bullet.getY() > pEnemy->getY() - size)
 			{
 				pEnemy->setDestroy(true);
-				pBullet->setDestroy(true);
+				bullet.setDestroy(true);
 			}
 		}
 	}
-	list<Enemy*>::iterator pEnemy = enemyes.begin();
-	pEnemy = enemyes.begin();
-	list<Enemy*>::iterator pTemp = enemyes.begin();
-	while ((pEnemy != enemyes.end()) && (enemyes.size() > 0))
-	{
-		if ((*pEnemy)->getDestroy())
+	enemyes.remove_if([](Enemy* en) {
+		if (en->getDestroy())
 		{
-			//pTemp = pEnemy;
-			//pTemp++;
-			delete* pEnemy;
-			enemyes.remove(*pEnemy);
-			if (enemyes.size() > 0)
-				//pEnemy = pTemp;
-				pEnemy = enemyes.begin();
+			delete(en);
+			return true;
 		}
-		else
-			pEnemy++;
-	}
+		return false; });
+	
 }
 
 void DrawCircle(int x, int y, int Rad, char shade, char* screen)
@@ -422,54 +399,41 @@ void DrawCircle(int x, int y, int Rad, char shade, char* screen)
 
 void UpdateBullets()
 {
-	for (Bullet *pBullet : bullets)
-		if (pBullet->getX() > Player.fX - Player.fSize
-			&& pBullet->getX() < Player.fX + Player.fSize
-			&& pBullet->getY() > Player.fY - Player.fSize
-			&& pBullet->getY() < Player.fY + Player.fSize)
+	for (Bullet& bullet : bullets)
+	{
+		if (bullet.getX() > player.fX - player.fSize
+			&& bullet.getX() < player.fX + player.fSize
+			&& bullet.getY() > player.fY - player.fSize
+			&& bullet.getY() < player.fY + player.fSize)
 		{
-			if (!pBullet->getDestroy())
+			if (!bullet.getDestroy())
 			{
-				pBullet->setDestroy(true);
-				Player.HP -= pBullet->GetDamage();
+				bullet.setDestroy(true);
+				player.HP -= bullet.GetDamage();
 			}
 		}
-	list<Bullet*>::iterator p = bullets.begin();
-	list<Bullet*>::iterator ptemp = p;
-	while (p != bullets.end() && bullets.size() > 0)
-	{
-		if ((*p)->getDestroy())
-		{
-			ptemp = p;
-			ptemp++;
-			delete* p;
-			bullets.remove(*p);
-			p = ptemp;
-		}
-		else
-			p++;
 	}
+	bullets.remove_if([](Bullet &bullet){return bullet.getDestroy();});//explain
 }
 
 void DrawBullets(char* screen)
 {
 	float x, y;
-	list<Bullet*>::iterator p = bullets.begin();
-	while (p != bullets.end())
+	for (Bullet bullet: bullets)
 	{
-		x = (*p)->getX();
-		y = (*p)->getY();
-		while (Player.fAngle > 2 * PI)
-			Player.fAngle -= 2 * PI;
-		while (Player.fAngle < 0)
-			Player.fAngle += 2 * PI;
-		float alpha = atan2(y - Player.fY, x - Player.fX);
+		x = bullet.getX();
+		y = bullet.getY();
+		while (player.fAngle > 2 * PI)
+			player.fAngle -= 2 * PI;
+		while (player.fAngle < 0)
+			player.fAngle += 2 * PI;
+		float alpha = atan2(y - player.fY, x - player.fX);
 		if (alpha < 0)
 			alpha += 2 * PI;
 		bool isVisual = false;
-		float fBulletDistance = sqrt(pow(x - Player.fX, 2) + pow(y - Player.fY, 2));
-		float CheckLow = Player.fAngle - fViewAngle / 2.0f;
-		float CheckHigh = Player.fAngle + fViewAngle / 2.0f;
+		float fBulletDistance = sqrt(pow(x - player.fX, 2) + pow(y - player.fY, 2));
+		float CheckLow = player.fAngle - fViewAngle / 2.0f;
+		float CheckHigh = player.fAngle + fViewAngle / 2.0f;
 		if (CheckLow < 0)
 			if (alpha < PI / 2.0f && alpha < CheckHigh)
 				isVisual = true;
@@ -484,9 +448,7 @@ void DrawBullets(char* screen)
 			int x = (alpha - CheckLow) * ScreenWidth / (CheckHigh - CheckLow);
 			DrawCircle(x, ScreenHeight / 2, Radius, BULLET_SHADE, screen);
 		}
-		p++;
 	}
-
 }
 
 void AddEnemyes()
@@ -501,13 +463,13 @@ void AddEnemyes()
 void MoveEnemyes(float time)
 {
 	for (Enemy* pEnemy : enemyes)
-		pEnemy->Move(Player.fX, Player.fY, time, map);
+		pEnemy->Move(player.fX, player.fY, time, map);
 }
 
 void MoveBullets(float time)
 {
-	for (Bullet* pBullet : bullets)
-		pBullet->Move(map, time, enemyes);
+	for (Bullet &bullet : bullets)
+		bullet.Move(map, time, enemyes);
 }
 
 void DrawRect(char *screen, int ScreenWidth, int x, 
@@ -548,12 +510,6 @@ int main() {
 	DWORD dwBytes = 0;
 	//SetConsoleTextAttribute(hConsole, FOREGROUND_BLUE | FOREGROUND_RED | FOREGROUND_INTENSITY);
 	SetConsoleActiveScreenBuffer(hConsole);
-	HANDLE hout = GetStdHandle(STD_OUTPUT_HANDLE);
-	COORD point;
-	point.X = 0;
-	point.Y = 0;
-	DWORD l;
-	//FillConsoleOutputAttribute(hConsole, 60, 120, point, &l);
 	GetConsoleTitle(Titles, BUF_SIZE);
 	font.cbSize = sizeof(CONSOLE_FONT_INFOEX);
 	font.nFont = 0;
@@ -609,7 +565,7 @@ int main() {
 		DrawInterface(screen, time);	
 		screen[ScreenWidth * ScreenHeight - 1] = '\0';	
 		WriteConsoleOutputCharacter(hConsole, screen, ScreenWidth * ScreenHeight, { 0, 0 }, &dwBytes);
-		if (Player.HP <= 0)
+		if (player.HP <= 0)
 			gameState = gsPause;
 	}
 	//midiOutClose(hMdiOut);
