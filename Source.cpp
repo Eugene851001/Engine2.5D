@@ -4,13 +4,16 @@
 #include "Bullet.h"
 #include "EventHadler.h"
 #include "Menu.h"
+#include "Levels.h"
 #define _CRT_SECURE_NO_WARNINGS
 
 //TODO: add to Engine.h
+int MapWidth = 16;
+int MapHeigth = 16;
 float DepthBuf[ScreenWidth];
 Player player;
-#define SOUND_RATE 44100
-#define SOUND_LENGTH 4
+#define SOUND_RATE 4400
+#define SOUND_LENGTH 2
 
 typedef struct _WAVEFile
 {
@@ -497,6 +500,49 @@ void DrawMainMenu(char *MainMenuScreen, Menu &menu)
 	WriteConsoleOutputCharacter(hConsole, MainMenuScreen, MenuWidth * MenuHeight, { 0, 0 }, &dwBytes);
 }
 
+void DrawLevelsMenu(char* screen, Levels &levels)
+{
+	DWORD dwBytes = 0;
+	memset(screen, ' ', LvlMenuWidth * LvlMenuHeight);
+	DrawRect(screen, LvlMenuWidth, 2, 2 * levels.GetLevelNum(), 9, 3, '#');
+	int i;
+	char strBuf[20] = "Level 1";
+	for (i = 0; i < levels.GetMaxLevel(); i++)
+	{
+		PrintLine(screen, LvlMenuWidth, strBuf, 9, i * 2 + 1);
+		sprintf_s(strBuf, "Level %d", i + 1);
+	}
+	WriteConsoleOutputCharacter(hConsole, screen, 
+		MenuWidth * MenuHeight, { 0, 0 }, &dwBytes);
+}
+
+void LoadLevel(Levels& levels)
+{
+	int LevelNum = levels.GetLevelNum();
+	Level level = levels.GetLevel();
+	int i;
+	float x, y;
+	for (i = 0; i < level.ObjectsNum; i++)
+	{
+		x = level.objects[i].x;
+		y = level.objects[i].y;
+		switch (level.objects[i].type)
+		{
+		case otEnemy:
+			enemyes.push_back(new Enemy(x, y, 3.0f));
+			break;
+		case otEnemySoldier:
+			enemyes.push_back(new EnemySoldier(x, y, 3.0f));
+			break;
+		}
+	}
+	map = level.map;
+	MapWidth = level.MapWidth;
+	MapHeigth = level.MapHeight;
+	player.fX = level.PlayerX;
+	player.fY = level.PlayerY;
+}
+
 int main() {
 	char Titles[BUF_SIZE];
 	gameState = gsMainMenu;
@@ -505,6 +551,7 @@ int main() {
 	CreateMap();
 	char* screen = new char[ScreenWidth * ScreenHeight];
 	char* MainMenuScreen = new char[MenuWidth * MenuHeight];
+	char* LvlMenuScreen = new char[LvlMenuWidth * LvlMenuHeight];
 	hConsole = CreateConsoleScreenBuffer(GENERIC_READ | GENERIC_WRITE,
 		0, NULL, CONSOLE_TEXTMODE_BUFFER, NULL);
 	DWORD dwBytes = 0;
@@ -522,11 +569,12 @@ int main() {
 	dimensioin.X = 600;
 	dimensioin.Y = 700;
 	SetConsoleDisplayMode(hConsole, CONSOLE_WINDOWED_MODE, &dimensioin);*/
-	AddEnemyes();
+	//AddEnemyes();
 	EventHandler event;
 	int tm1 = clock();
 	int tm2 = clock();
 	Menu menu(map);
+
 	gameState = gsMainMenu;
 	while (gameState == gsMainMenu)
 	{
@@ -538,6 +586,23 @@ int main() {
 			gameState = menu.Move(DOWN);
 		if (event.isKeyUp('S'))
 			gameState = menu.Move(UP);
+	}
+	Levels levels;
+	while (gameState == gsChooseLevel)
+	{
+		DrawLevelsMenu(LvlMenuScreen, levels);
+		event.Update();
+		if (event.isKeyUp(' '))
+			gameState = levels.Move(IN);
+		if (event.isKeyUp('W'))
+			gameState = levels.Move(DOWN);
+		if (event.isKeyUp('S'))
+			gameState = levels.Move(UP);
+	}
+	while (gameState == gsLoadLevel)
+	{
+		LoadLevel(levels);
+		gameState = gsRun;
 	}
 	font.cbSize = sizeof(CONSOLE_FONT_INFOEX);
 	font.nFont = 0;

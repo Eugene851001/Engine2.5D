@@ -12,6 +12,7 @@ Bullet::Bullet(float x, float y, float dx, float dy)
 	isDestroy = false;
 }
 
+extern int MapWidth, MapHeigth;
 void Bullet::Move(const std::string& Map, float time, std::list<Enemy*> enemyes)
 {
 	if (!isDestroy)

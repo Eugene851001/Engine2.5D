@@ -23,6 +23,9 @@ GameState Menu::Move(int dir)
 		case ipQuit:
 			gameState = gsQuit;
 			break;
+		case ipLevels:
+			gameState = gsChooseLevel;
+			break;
 		default:
 			break;
 		}

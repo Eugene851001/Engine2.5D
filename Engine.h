@@ -15,13 +15,11 @@
 #define BUF_SIZE 30
 #define	SLEEP_TIME 5000
 
-enum GameState {gsMainMenu, gsRun, gsPause, gsQuit};
+enum GameState {gsMainMenu, gsRun, gsPause, gsQuit, gsChooseLevel, gsLoadLevel};
 
 void makeScreenShoot(char* screen);
 const int ScreenWidth = 120;
 const int ScreenHeight = 120;
-const int MapWidth = 16;
-const int MapHeigth = 16;
 
 const float fViewAngle = PI / 4.0f;
 const float fViewRad = 10.0f;

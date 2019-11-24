@@ -1,26 +1,26 @@
 ﻿  Source.cpp
 C:\Users\evgeny\Desktop\For GIT\Engine2.5D\Engine.h(14,1): warning C4005:  max: изменение макроопределения
 C:\Program Files (x86)\Windows Kits\10\Include\10.0.17763.0\shared\minwindef.h(193): message :  см. предыдущее определение "max"
-C:\Users\evgeny\Desktop\For GIT\Engine2.5D\Engine.h(26,35): warning C4305:  инициализация: усечение из "double" в "float"
+C:\Users\evgeny\Desktop\For GIT\Engine2.5D\Engine.h(24,35): warning C4305:  инициализация: усечение из "double" в "float"
 C:\Users\evgeny\Desktop\For GIT\Engine2.5D\Menu.h(6,1): warning C4005:  IN: изменение макроопределения
 C:\Program Files (x86)\Windows Kits\10\Include\10.0.17763.0\shared\minwindef.h(79): message :  см. предыдущее определение "IN"
-C:\Users\evgeny\Desktop\For GIT\Engine2.5D\Source.cpp(148,17): warning C4244:  =: преобразование "std::streamoff" в "int", возможна потеря данных
-C:\Users\evgeny\Desktop\For GIT\Engine2.5D\Source.cpp(183,12): warning C4244:  инициализация: преобразование "double" в "int", возможна потеря данных
-C:\Users\evgeny\Desktop\For GIT\Engine2.5D\Source.cpp(230,15): warning C4244:  инициализация: преобразование "float" в "int", возможна потеря данных
-C:\Users\evgeny\Desktop\For GIT\Engine2.5D\Source.cpp(236,16): warning C4309:  =: усечение константного значения
-C:\Users\evgeny\Desktop\For GIT\Engine2.5D\Source.cpp(239,17): warning C4309:  =: усечение константного значения
-C:\Users\evgeny\Desktop\For GIT\Engine2.5D\Source.cpp(241,17): warning C4309:  =: усечение константного значения
-C:\Users\evgeny\Desktop\For GIT\Engine2.5D\Source.cpp(270,26): warning C4305:  -=: усечение из "double" в "float"
-C:\Users\evgeny\Desktop\For GIT\Engine2.5D\Source.cpp(272,26): warning C4305:  +=: усечение из "double" в "float"
-C:\Users\evgeny\Desktop\For GIT\Engine2.5D\Source.cpp(275,22): warning C4305:  +=: усечение из "double" в "float"
-C:\Users\evgeny\Desktop\For GIT\Engine2.5D\Source.cpp(296,16): warning C4244:  инициализация: преобразование "float" в "int", возможна потеря данных
-C:\Users\evgeny\Desktop\For GIT\Engine2.5D\Source.cpp(299,17): warning C4244:  инициализация: преобразование "float" в "int", возможна потеря данных
-C:\Users\evgeny\Desktop\For GIT\Engine2.5D\Source.cpp(302,10): warning C4244:  инициализация: преобразование "float" в "int", возможна потеря данных
-C:\Users\evgeny\Desktop\For GIT\Engine2.5D\Source.cpp(351,8): warning C4101:  size: неиспользованная локальная переменная
-C:\Users\evgeny\Desktop\For GIT\Engine2.5D\Source.cpp(427,27): warning C4305:  -=: усечение из "double" в "float"
-C:\Users\evgeny\Desktop\For GIT\Engine2.5D\Source.cpp(429,27): warning C4305:  +=: усечение из "double" в "float"
-C:\Users\evgeny\Desktop\For GIT\Engine2.5D\Source.cpp(432,19): warning C4305:  +=: усечение из "double" в "float"
-C:\Users\evgeny\Desktop\For GIT\Engine2.5D\Source.cpp(445,16): warning C4244:  инициализация: преобразование "float" в "int", возможна потеря данных
-C:\Users\evgeny\Desktop\For GIT\Engine2.5D\Source.cpp(448,10): warning C4244:  инициализация: преобразование "float" в "int", возможна потеря данных
-C:\Users\evgeny\Desktop\For GIT\Engine2.5D\Source.cpp(553,14): warning C4244:  инициализация: преобразование "int" в "float", возможна потеря данных
+C:\Users\evgeny\Desktop\For GIT\Engine2.5D\Source.cpp(151,17): warning C4244:  =: преобразование "std::streamoff" в "int", возможна потеря данных
+C:\Users\evgeny\Desktop\For GIT\Engine2.5D\Source.cpp(186,12): warning C4244:  инициализация: преобразование "double" в "int", возможна потеря данных
+C:\Users\evgeny\Desktop\For GIT\Engine2.5D\Source.cpp(233,15): warning C4244:  инициализация: преобразование "float" в "int", возможна потеря данных
+C:\Users\evgeny\Desktop\For GIT\Engine2.5D\Source.cpp(239,16): warning C4309:  =: усечение константного значения
+C:\Users\evgeny\Desktop\For GIT\Engine2.5D\Source.cpp(242,17): warning C4309:  =: усечение константного значения
+C:\Users\evgeny\Desktop\For GIT\Engine2.5D\Source.cpp(244,17): warning C4309:  =: усечение константного значения
+C:\Users\evgeny\Desktop\For GIT\Engine2.5D\Source.cpp(273,26): warning C4305:  -=: усечение из "double" в "float"
+C:\Users\evgeny\Desktop\For GIT\Engine2.5D\Source.cpp(275,26): warning C4305:  +=: усечение из "double" в "float"
+C:\Users\evgeny\Desktop\For GIT\Engine2.5D\Source.cpp(278,22): warning C4305:  +=: усечение из "double" в "float"
+C:\Users\evgeny\Desktop\For GIT\Engine2.5D\Source.cpp(299,16): warning C4244:  инициализация: преобразование "float" в "int", возможна потеря данных
+C:\Users\evgeny\Desktop\For GIT\Engine2.5D\Source.cpp(302,17): warning C4244:  инициализация: преобразование "float" в "int", возможна потеря данных
+C:\Users\evgeny\Desktop\For GIT\Engine2.5D\Source.cpp(305,10): warning C4244:  инициализация: преобразование "float" в "int", возможна потеря данных
+C:\Users\evgeny\Desktop\For GIT\Engine2.5D\Source.cpp(354,8): warning C4101:  size: неиспользованная локальная переменная
+C:\Users\evgeny\Desktop\For GIT\Engine2.5D\Source.cpp(430,27): warning C4305:  -=: усечение из "double" в "float"
+C:\Users\evgeny\Desktop\For GIT\Engine2.5D\Source.cpp(432,27): warning C4305:  +=: усечение из "double" в "float"
+C:\Users\evgeny\Desktop\For GIT\Engine2.5D\Source.cpp(435,19): warning C4305:  +=: усечение из "double" в "float"
+C:\Users\evgeny\Desktop\For GIT\Engine2.5D\Source.cpp(448,16): warning C4244:  инициализация: преобразование "float" в "int", возможна потеря данных
+C:\Users\evgeny\Desktop\For GIT\Engine2.5D\Source.cpp(451,10): warning C4244:  инициализация: преобразование "float" в "int", возможна потеря данных
+C:\Users\evgeny\Desktop\For GIT\Engine2.5D\Source.cpp(618,14): warning C4244:  инициализация: преобразование "int" в "float", возможна потеря данных
   DebugEngine.vcxproj -> C:\Users\evgeny\Desktop\For GIT\Engine2.5D\x64\Debug\DebugEngine.exe
