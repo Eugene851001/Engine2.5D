@@ -5,6 +5,9 @@
 #include "EventHadler.h"
 #include "Menu.h"
 #include "Levels.h"
+#include "Pause.h"
+#include "GameOver.h"
+#include "EDS.h"
 #define _CRT_SECURE_NO_WARNINGS
 
 //TODO: add to Engine.h
@@ -14,27 +17,17 @@ float DepthBuf[ScreenWidth];
 Player player;
 #define SOUND_RATE 4400
 #define SOUND_LENGTH 2
+int KillsCounter;
+float TotalTime;
+Record defaultRecord = { 0, 999 };
+Record records[4];
+int Siganture;
 
-typedef struct _WAVEFile
-{
-	char chunkId[4];
-	long chunkSize;
-	char format[4];
-	char subchunk1Id[4];
-	long subchunk1Size;
-	PCMWAVEFORMAT fmt;
-	char subchunk2Id[4];
-	long subchunk2Size;
-	short data[SOUND_RATE * SOUND_LENGTH];
-} WAVEFile, * PWAVEFile;
-
-WAVEFile wf = { {'R', 'I', 'F', 'F'}, sizeof(WAVEFile) - 8, {'W', 'A', 'V', 'E'}, {'f', 'm', 't', ' '}, sizeof(PCMWAVEFORMAT),
-				{WAVE_FORMAT_PCM, 1, SOUND_RATE, SOUND_RATE * 2, 2, 16},
-				{'d', 'a', 't', 'a'}, sizeof(wf.data) };
 CONSOLE_FONT_INFOEX font;
 HANDLE hConsole;
 char* sndBuf;
 const char* SoundFileName = "gun-gunshot-01.wav";
+const char* RecordsFileName = "Records";
 GameState gameState;
 //---------------------------
 
@@ -99,6 +92,8 @@ bool isCollision(float x, float y)
 
 void MovePlayer(float time)
 {
+	if (GetAsyncKeyState(VK_ESCAPE))
+		gameState = gsPause;
 	if (GetAsyncKeyState('A'))
 		player.fAngle -= player.fAngleSpeed * time;
 	if (GetAsyncKeyState('D'))
@@ -139,6 +134,72 @@ void MovePlayer(float time)
 		}
 	}
 	player.tmAfterShoot += time;
+}
+
+void LoadMyRecords()
+{
+	bool isCorrect = true;
+	char temp;
+	int size;
+	FILE* f;
+	EDS eds;
+	if (fopen_s(&f, RecordsFileName, "r"))
+	{
+		try
+		{
+			for (int i = 0; i < 4; i++)
+			{
+				fscanf_s(f, "%d", &records[i].kills);
+				fscanf_s(f, "%d", &records[i].time);
+			}
+			fscanf_s(f, "%c", temp);
+			if (temp == EDSSign)
+			{
+				fscanf_s(f, "%d", Siganture);
+				if (eds.GetHash((char*)records, 4 * sizeof(Record)) != Siganture)
+					isCorrect = false;
+			}
+			else
+			{
+				isCorrect = false;
+			}
+		}
+		catch(exception exp)
+		{
+			isCorrect = false;
+		}
+	}
+	else
+	{
+		isCorrect = false;
+	}
+	fclose(f);
+	if (!isCorrect)
+	{
+		for (int i = 0; i < 4; i++)
+		{
+			records[i] = defaultRecord;
+		}
+	}
+}
+
+void SaveRecords()
+{
+	FILE* f;
+	fopen_s(&f, RecordsFileName, "w");
+	EDS eds;
+	int Result[2];
+	Result[0] = KillsCounter;
+	Result[1] = (int)TotalTime;
+	Siganture = eds.GetHash((char*)&Result, 2 * sizeof(int));
+	for (int i = 0; i < 4; i++)
+	{
+		fprintf_s(f, "%d", records[i].kills);
+		fprintf_s(f, "%d", records[i].time);
+	}
+	fprintf_s(f, "%c", EDSSign);
+	fprintf_s(f, "%d", Siganture);
+	fclose(f);
 }
 
 void LoadSound()
@@ -362,6 +423,7 @@ void UpdateEnemyes()
 				&& bullet.getY() < pEnemy->getY() + size
 				&& bullet.getY() > pEnemy->getY() - size)
 			{
+				KillsCounter++;
 				pEnemy->setDestroy(true);
 				bullet.setDestroy(true);
 			}
@@ -445,7 +507,7 @@ void DrawBullets(char* screen)
 					isVisual = true;
 		if ((alpha > CheckLow && alpha < CheckHigh) || isVisual)
 		{
-			int Ceiling = ScreenHeight / 2.0f - ScreenHeight / (fBulletDistance);
+			int Ceiling = ScreenHeight / 2.0f - ScreenHeight / (fBulletDistance );
 			int Floor = ScreenHeight - Ceiling;
 			int Radius = (Floor - Ceiling) / 2;
 			int x = (alpha - CheckLow) * ScreenWidth / (CheckHigh - CheckLow);
@@ -510,7 +572,7 @@ void DrawLevelsMenu(char* screen, Levels &levels)
 	for (i = 0; i < levels.GetMaxLevel(); i++)
 	{
 		PrintLine(screen, LvlMenuWidth, strBuf, 9, i * 2 + 1);
-		sprintf_s(strBuf, "Level %d", i + 1);
+		sprintf_s(strBuf, "Level %d", i + 2);
 	}
 	WriteConsoleOutputCharacter(hConsole, screen, 
 		MenuWidth * MenuHeight, { 0, 0 }, &dwBytes);
@@ -529,10 +591,10 @@ void LoadLevel(Levels& levels)
 		switch (level.objects[i].type)
 		{
 		case otEnemy:
-			enemyes.push_back(new Enemy(x, y, 3.0f));
+			enemyes.push_back(new Enemy(x, y, 0.3f));
 			break;
 		case otEnemySoldier:
-			enemyes.push_back(new EnemySoldier(x, y, 3.0f));
+			enemyes.push_back(new EnemySoldier(x, y, 0.3f));
 			break;
 		}
 	}
@@ -541,6 +603,47 @@ void LoadLevel(Levels& levels)
 	MapHeigth = level.MapHeight;
 	player.fX = level.PlayerX;
 	player.fY = level.PlayerY;
+	player.HP = 20;
+	TotalTime = 0.0f;
+	KillsCounter = 0;
+}
+
+void DrawPauseMenu(char *screen,Pause &pause)
+{
+	DWORD dwBytes = 0;
+	memset(screen, ' ', MenuWidth * MenuHeight);
+	DrawRect(screen, MenuWidth, 2, 2 * (int)pause.GetIPP(), 10, 3, '#');
+	char strBuf[20] = "Continue";
+	PrintLine(screen, MenuWidth, strBuf, 9, 1);
+	sprintf_s(strBuf, "%s", "Main menu");
+	PrintLine(screen, MenuWidth, strBuf, 9, 3);
+	sprintf_s(strBuf, "%s", "Quit");
+	PrintLine(screen, MenuWidth, strBuf, 9, 5);
+	WriteConsoleOutputCharacter(hConsole, screen, MenuWidth * MenuHeight, { 0, 0 }, &dwBytes);
+}
+
+void DrawGameOver(char* screen, GameOver& gameOver)
+{
+	DWORD dwBytes = 0;
+	memset(screen, ' ', GameOverHeight * GameOverWidth);
+	DrawRect(screen, GameOverWidth, 2, 2 * (int)gameOver.GetGOIP() + 6, 10, 3, '#');
+	char strBuf[20] = "Game Over";
+	PrintLine(screen, GameOverWidth, strBuf, 18, 1);
+	sprintf_s(strBuf, "%s %d", "Enemyes killed:", KillsCounter);
+	PrintLine(screen, GameOverWidth, strBuf, 18, 3);
+	sprintf_s(strBuf, "Time: %d s", (int)TotalTime / 1000);
+	PrintLine(screen, GameOverWidth, strBuf, 18, 5);
+	sprintf_s(strBuf, "%s", "Main menu");
+	PrintLine(screen, GameOverWidth, strBuf, 18, 7);
+	sprintf_s(strBuf, "%s", "Quit");
+	PrintLine(screen, GameOverWidth, strBuf, 18, 9);
+	WriteConsoleOutputCharacter(hConsole, screen, GameOverWidth * GameOverHeight, { 0, 0 }, &dwBytes);
+}
+
+
+void LoadRecrords()
+{
+
 }
 
 int main() {
@@ -552,6 +655,8 @@ int main() {
 	char* screen = new char[ScreenWidth * ScreenHeight];
 	char* MainMenuScreen = new char[MenuWidth * MenuHeight];
 	char* LvlMenuScreen = new char[LvlMenuWidth * LvlMenuHeight];
+	char* PausMenuScreen = new char[PauseWidth * PauseHeight];
+	char* GameOverScreen = new char[GameOverWidth * GameOverHeight];
 	hConsole = CreateConsoleScreenBuffer(GENERIC_READ | GENERIC_WRITE,
 		0, NULL, CONSOLE_TEXTMODE_BUFFER, NULL);
 	DWORD dwBytes = 0;
@@ -574,65 +679,105 @@ int main() {
 	int tm1 = clock();
 	int tm2 = clock();
 	Menu menu(map);
-
-	gameState = gsMainMenu;
-	while (gameState == gsMainMenu)
-	{
-		DrawMainMenu(MainMenuScreen, menu);
-		event.Update();
-		if (event.isKeyUp(' '))
-			gameState = menu.Move(IN);
-		if (event.isKeyUp('W'))
-			gameState = menu.Move(DOWN);
-		if (event.isKeyUp('S'))
-			gameState = menu.Move(UP);
-	}
 	Levels levels;
-	while (gameState == gsChooseLevel)
+	Pause pause;
+	GameOver gameOver;
+	gameState = gsMainMenu;
+	while (gameState != gsQuit)
 	{
-		DrawLevelsMenu(LvlMenuScreen, levels);
-		event.Update();
-		if (event.isKeyUp(' '))
-			gameState = levels.Move(IN);
-		if (event.isKeyUp('W'))
-			gameState = levels.Move(DOWN);
-		if (event.isKeyUp('S'))
-			gameState = levels.Move(UP);
-	}
-	while (gameState == gsLoadLevel)
-	{
-		LoadLevel(levels);
-		gameState = gsRun;
-	}
-	font.cbSize = sizeof(CONSOLE_FONT_INFOEX);
-	font.nFont = 0;
-	font.FontFamily = 0;
-	font.FontWeight = 400;
-	font.dwFontSize.X = 8;
-	font.dwFontSize.Y = 8;
-	SetCurrentConsoleFontEx(hConsole, true, &font);
-	LoadSound();
-	while (gameState == gsRun)
-	{
-		tm1 = clock();
-		float time = (tm1 - tm2);
-		tm2 = tm1;
-		list<Enemy*>::iterator pEnemy = enemyes.begin();
-		MovePlayer(time);
-		MoveEnemyes(time);
-		UpdateBullets();
-		UpdateEnemyes();
-		MoveBullets(time);
-		DrawWalls(screen);
-		DrawEnemyes(screen);
-		DrawBullets(screen);
-		DrawMap(screen, MapHeigth, MapWidth, ScreenWidth);
-		DrawInterface(screen, time);	
-		screen[ScreenWidth * ScreenHeight - 1] = '\0';	
-		WriteConsoleOutputCharacter(hConsole, screen, ScreenWidth * ScreenHeight, { 0, 0 }, &dwBytes);
-		if (player.HP <= 0)
-			gameState = gsPause;
+		font.cbSize = sizeof(CONSOLE_FONT_INFOEX);
+		font.nFont = 0;
+		font.FontFamily = 0;
+		font.FontWeight = 400;
+		font.dwFontSize.X = 32;
+		font.dwFontSize.Y = 64;
+		SetCurrentConsoleFontEx(hConsole, true, &font);
+		while (gameState == gsMainMenu)
+		{
+			DrawMainMenu(MainMenuScreen, menu);
+			event.Update();
+			if (event.isKeyUp(' '))
+				gameState = menu.Move(IN);
+			if (event.isKeyUp('W'))
+				gameState = menu.Move(DOWN);
+			if (event.isKeyUp('S'))
+				gameState = menu.Move(UP);
+		}
+		while (gameState == gsChooseLevel)
+		{
+			DrawLevelsMenu(LvlMenuScreen, levels);
+			event.Update();
+			if (event.isKeyUp(' '))
+				gameState = levels.Move(IN);
+			if (event.isKeyUp('W'))
+				gameState = levels.Move(DOWN);
+			if (event.isKeyUp('S'))
+				gameState = levels.Move(UP);
+			if (event.isKeyUp(VK_ESCAPE))
+				gameState = levels.Move(BACK);
+		}
+		while (gameState == gsLoadLevel)
+		{
+			LoadLevel(levels);
+			gameState = gsRun;
+		}
+		while (gameState == gsPause)
+		{
+			DrawPauseMenu(PausMenuScreen, pause);
+			event.Update();
+			if (event.isKeyUp('W'))
+				gameState = pause.Move(DOWN);
+			if (event.isKeyUp('S'))
+				gameState = pause.Move(UP);
+			if (event.isKeyUp(' '))
+				gameState = pause.Move(IN);
+		}
+		while (gameState == gsGameOver)
+		{
+			DrawGameOver(GameOverScreen, gameOver);
+			event.Update();
+			if (event.isKeyUp('W') || event.isKeyUp('S'))
+				gameState = gameOver.Move(UP);
+			if (event.isKeyUp(' '))
+				gameState = gameOver.Move(IN);
+		}
+		font.cbSize = sizeof(CONSOLE_FONT_INFOEX);
+		font.nFont = 0;
+		font.FontFamily = 0;
+		font.FontWeight = 400;
+		font.dwFontSize.X = 8;
+		font.dwFontSize.Y = 8;
+		SetCurrentConsoleFontEx(hConsole, true, &font);
+		LoadSound();
+		LoadMyRecords();
+		while (gameState == gsRun)
+		{
+			tm1 = clock();
+			float time = (tm1 - tm2);
+			TotalTime += time;
+			tm2 = tm1;
+			list<Enemy*>::iterator pEnemy = enemyes.begin();
+			MovePlayer(time);
+			MoveEnemyes(time);
+			UpdateBullets();
+			UpdateEnemyes();
+			MoveBullets(time);
+			DrawWalls(screen);
+			DrawEnemyes(screen);
+			DrawBullets(screen);
+			DrawMap(screen, MapHeigth, MapWidth, ScreenWidth);
+			DrawInterface(screen, time);
+			screen[ScreenWidth * ScreenHeight - 1] = '\0';
+			WriteConsoleOutputCharacter(hConsole, screen, ScreenWidth * ScreenHeight, { 0, 0 }, &dwBytes);
+			if (player.HP <= 0)
+			{
+				gameState = gsGameOver;
+				records[levels.GetLevelNum()].kills = KillsCounter;
+				records[levels.GetLevelNum()].time = (int)TotalTime;
+				SaveRecords();
+			}
+		}
 	}
 	//midiOutClose(hMdiOut);
 	return 0;
-}
+} 

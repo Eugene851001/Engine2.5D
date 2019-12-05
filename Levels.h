@@ -1,6 +1,7 @@
 #pragma once
 #include <iostream>
 #include "Engine.h"
+#define BACK 2
 
 const int LvlMenuWidth = 12;
 const int LvlMenuHeight = 9;
@@ -25,7 +26,7 @@ typedef struct _Level
 
 class Levels
 {
-	const int MaxLevel = 2;
+	const int MaxLevel = 3;
 	int LevelNum;
 	Level *LevelList;
 public:

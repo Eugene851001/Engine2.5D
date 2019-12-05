@@ -47,7 +47,7 @@ void EnemySoldier::Move(float plX, float plY, float time, std::string &map)
 		if ((distance < fViewRad) && (distance > size + 0.2f))
 		{
 			//x = y = 2;
-		//	Attack(plX, plY, time);
+			Attack(plX, plY, time);
 		}	
 	}
 }
