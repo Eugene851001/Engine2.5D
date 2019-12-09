@@ -14,9 +14,10 @@
 #define RECORD "Records.txt"
 #define max(a, b) ((a) > (b)) ? a : b
 #define BUF_SIZE 30
-#define	SLEEP_TIME 5000
+#define BACK 2
 
-enum GameState {gsMainMenu, gsRun, gsPause, gsQuit, gsChooseLevel, gsLoadLevel, gsGameOver};
+enum GameState {gsMainMenu, gsRun, gsPause, gsQuit, gsChooseLevel, 
+		gsLoadLevel, gsShowRecords, gsGameOver};
 
 void makeScreenShoot(char* screen);
 const int ScreenWidth = 120;
@@ -27,12 +28,6 @@ const float fViewRad = 10.0f;
 const float fDepth = 16.0f;
 
 const char EDSSign = 1;
-
-typedef struct _Record
-{
-	int kills;
-	int time;
-} Record;
 
 typedef struct _Player
 {

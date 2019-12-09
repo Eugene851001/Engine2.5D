@@ -1,7 +1,7 @@
 #pragma once
 #include <iostream>
 #include "Engine.h"
-#define BACK 2
+
 
 const int LvlMenuWidth = 12;
 const int LvlMenuHeight = 9;
@@ -17,11 +17,11 @@ typedef struct _Object
 
 typedef struct _Level
 {
-	int ObjectsNum;
-	Object* objects;
-	int MapWidth, MapHeight;
-	std::string map;
-	float PlayerX, PlayerY;
+	int ObjectsNum;//кол-во объектов на уровне
+	Object* objects;//казатель на массив объектов
+	int MapWidth, MapHeight;//высота и ширина карты
+	std::string map;//сама карта
+	float PlayerX, PlayerY;//координаты, в которых появляется игрок при загрузке карты 
 } Level;
 
 class Levels

@@ -134,6 +134,8 @@
     <ClCompile Include="Levels.cpp" />
     <ClCompile Include="Menu.cpp" />
     <ClCompile Include="Pause.cpp" />
+    <ClCompile Include="Records.cpp" />
+    <ClCompile Include="Sound.cpp" />
     <ClCompile Include="Source.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -147,6 +149,12 @@
     <ClInclude Include="Levels.h" />
     <ClInclude Include="Menu.h" />
     <ClInclude Include="Pause.h" />
+    <ClInclude Include="Records.h" />
+    <ClInclude Include="Sound.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <Media Include="Game Over.wav" />
+    <Media Include="gun1.wav" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

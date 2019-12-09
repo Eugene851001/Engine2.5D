@@ -7,7 +7,7 @@
 const int MenuWidth = 12;
 const int MenuHeight = 9;
 
-enum ItemPointer {ipStart, ipLevels, ipOptions, ipQuit, ipAmount};
+enum ItemPointer {ipStart, ipLevels, ipRecords, ipQuit, ipAmount};
 
 class Menu
 {

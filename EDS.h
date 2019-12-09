@@ -2,7 +2,8 @@
 
 class EDS
 {
-	const int R = 33;
+	const int R = 2827;
+	const int SecretStartVaue = 133;
 public:
 	int GetHash(char *date, int size);
 //	int ExtendedEuclid(int a, int b, int& x, int& y);

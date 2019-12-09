@@ -30,9 +30,11 @@ void EnemySoldier::Attack(float plX, float plY, float time)
 		float distance = sqrt(pow(plX - x, 2) + pow(plY - y, 2));
 		float dx = (plX - x) / distance;
 		float dy = (plY - y) / distance;
+		float b_x = x + (size + 0.1f) * dx;
+		float b_y = y + (size + 0.1f) * dy;
 		//Bullet *myBullet = new Bullet(x, y, dx, dy);
-		bullets.push_back(Bullet(x + (size + 0.1f) * dx, 
-			y + (size + 0.1f) * dy, dx, dy));
+		bullets.push_back(Bullet(b_x, 
+			b_y, dx, dy));
 		tmAfterShoot = 0;	
 	}
 	else

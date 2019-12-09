@@ -7,7 +7,9 @@
 #include "Levels.h"
 #include "Pause.h"
 #include "GameOver.h"
+#include "Records.h"
 #include "EDS.h"
+#include "Sound.h"
 #define _CRT_SECURE_NO_WARNINGS
 
 //TODO: add to Engine.h
@@ -15,19 +17,17 @@ int MapWidth = 16;
 int MapHeigth = 16;
 float DepthBuf[ScreenWidth];
 Player player;
-#define SOUND_RATE 4400
-#define SOUND_LENGTH 2
+Sound *sound;
 int KillsCounter;
 float TotalTime;
-Record defaultRecord = { 0, 999 };
-Record records[4];
 int Siganture;
+Records records;
 
 CONSOLE_FONT_INFOEX font;
 HANDLE hConsole;
 char* sndBuf;
 const char* SoundFileName = "gun-gunshot-01.wav";
-const char* RecordsFileName = "Records";
+const char* RecordsFileName = "Records.txt";
 GameState gameState;
 //---------------------------
 
@@ -36,7 +36,6 @@ using namespace std;
 string map = "";
 list<Enemy*> enemyes;
 list<Bullet> bullets;
-HMIDIOUT hMdiOut;
 DWORD note;
 
 void CreateMap()
@@ -55,7 +54,7 @@ void CreateMap()
 	map += "#.........#....#";
 	map += "#.........#....#";
 	map += "#.........######";
-	map += "#..............#";
+	map += "#..............f";
 	map += "################";
 }
 
@@ -123,9 +122,7 @@ void MovePlayer(float time)
 		//	Player.tmAfterShoot += time;
 		if (player.tmReload < player.tmAfterShoot)
 		{
-			//sndPlaySound("gun-gunshot-01.wav", SND_ASYNC);
-			/*note = rand() % 128;
-			midiOutShortMsg(hMdiOut, 0x7F0090 | (note<<8));*/
+			sound->Play(sndShoot);
 			float b_x = player.fX + ( player.fSize + 0.1f) * cosf(player.fAngle);
 			float b_y = player.fY + (player.fSize + 0.1f) * sinf(player.fAngle);
 			Bullet bullet(b_x, b_y, cosf(player.fAngle), sinf(player.fAngle));
@@ -141,30 +138,34 @@ void LoadMyRecords()
 	bool isCorrect = true;
 	char temp;
 	int size;
-	FILE* f;
 	EDS eds;
-	if (fopen_s(&f, RecordsFileName, "r"))
+	Record tempRec;
+	Record tempRecs[4];
+	std::ifstream fin(RecordsFileName);
+	if (fin.is_open())
 	{
-		try
+		for (int i = 0; i < 4; i++)
 		{
+			tempRec = records.GetRecord(0);
+			if (fin >> tempRec.kills && fin >> tempRec.time)
+				records.SetRecord(i, tempRec);
+			else
+				isCorrect = false;
+		}
+		if (!(fin >> temp) && isCorrect)
+			isCorrect = false;
+		if (temp == EDSSign && isCorrect)
+		{
+			if (isCorrect && !(fin >> Siganture))
+				isCorrect = false;
 			for (int i = 0; i < 4; i++)
 			{
-				fscanf_s(f, "%d", &records[i].kills);
-				fscanf_s(f, "%d", &records[i].time);
+				tempRecs[i] = records.GetRecord(i);
 			}
-			fscanf_s(f, "%c", temp);
-			if (temp == EDSSign)
-			{
-				fscanf_s(f, "%d", Siganture);
-				if (eds.GetHash((char*)records, 4 * sizeof(Record)) != Siganture)
-					isCorrect = false;
-			}
-			else
-			{
+			if (isCorrect && eds.GetHash((char*)tempRecs, 4 * sizeof(Record)) != Siganture)
 				isCorrect = false;
-			}
 		}
-		catch(exception exp)
+		else
 		{
 			isCorrect = false;
 		}
@@ -173,37 +174,41 @@ void LoadMyRecords()
 	{
 		isCorrect = false;
 	}
-	fclose(f);
+	fin.close();
 	if (!isCorrect)
 	{
-		for (int i = 0; i < 4; i++)
-		{
-			records[i] = defaultRecord;
-		}
+		records.SetDefaultRecords();
 	}
 }
 
 void SaveRecords()
 {
 	FILE* f;
-	fopen_s(&f, RecordsFileName, "w");
-	EDS eds;
-	int Result[2];
-	Result[0] = KillsCounter;
-	Result[1] = (int)TotalTime;
-	Siganture = eds.GetHash((char*)&Result, 2 * sizeof(int));
-	for (int i = 0; i < 4; i++)
+	if (fopen_s(&f, RecordsFileName, "w"))
 	{
-		fprintf_s(f, "%d", records[i].kills);
-		fprintf_s(f, "%d", records[i].time);
+		EDS eds;
+		Record tempRecs[4];
+		Record tempRec;
+		for (int i = 0; i < 4; i++)
+		{
+			tempRecs[i] = records.GetRecord(i);
+		}
+		Siganture = eds.GetHash((char*)tempRecs, 4 * sizeof(Record));
+		for (int i = 0; i < 4; i++)
+		{
+			tempRec = records.GetRecord(i);
+			fprintf_s(f, "%d\n", tempRec.kills);
+			fprintf_s(f, "%d\n", tempRec.time);
+		}
+		fprintf_s(f, "%c\n", EDSSign);
+		fprintf_s(f, "%d\n", Siganture);
+		fclose(f);
 	}
-	fprintf_s(f, "%c", EDSSign);
-	fprintf_s(f, "%d", Siganture);
-	fclose(f);
 }
 
 void LoadSound()
 {
+	
 	int size;
 	ifstream f(SoundFileName);
 	if (f.is_open())
@@ -555,7 +560,7 @@ void DrawMainMenu(char *MainMenuScreen, Menu &menu)
 	PrintLine(MainMenuScreen, MenuWidth, strBuf, 9, 1);
 	sprintf_s(strBuf, "%s", "levels");
 	PrintLine(MainMenuScreen, MenuWidth, strBuf, 9, 3);
-	sprintf_s(strBuf, "%s", "options");
+	sprintf_s(strBuf, "%s", "records");
 	PrintLine(MainMenuScreen, MenuWidth, strBuf, 9, 5);
 	sprintf_s(strBuf, "%s", "Quit");
 	PrintLine(MainMenuScreen, MenuWidth, strBuf, 9, 7);
@@ -606,6 +611,7 @@ void LoadLevel(Levels& levels)
 	player.HP = 20;
 	TotalTime = 0.0f;
 	KillsCounter = 0;
+	sound->Play(sndMain);
 }
 
 void DrawPauseMenu(char *screen,Pause &pause)
@@ -641,22 +647,39 @@ void DrawGameOver(char* screen, GameOver& gameOver)
 }
 
 
-void LoadRecrords()
+void DrawRecords(char* screen/*, Records& records*/)
 {
-
+	DWORD dwBytes = 0;
+	char strBuf[20] = "Game Over";
+	Record tempRec;
+	memset(screen, ' ', RecordsWidth * RecordsHeight);
+	for (int i = 0; i < 4; i++)
+	{
+		tempRec = records.GetRecord(i);
+		if (i == 3)
+			sprintf_s(strBuf, "Random lvl");
+		else
+			sprintf_s(strBuf, "Level num: %d", i);
+		PrintLine(screen, RecordsWidth, strBuf, 18, 3 * i);
+		sprintf_s(strBuf, "Enemyes killed: %d", tempRec.kills);
+		PrintLine(screen, RecordsWidth, strBuf, 18, 3 * i + 1);
+		sprintf_s(strBuf, "Time: %d", tempRec.time);
+		PrintLine(screen, RecordsWidth, strBuf, 18, 3 * i + 2);
+	}
+	WriteConsoleOutputCharacter(hConsole, screen, GameOverWidth * GameOverHeight, { 0, 0 }, &dwBytes);
 }
 
 int main() {
 	char Titles[BUF_SIZE];
 	gameState = gsMainMenu;
-	SetConsoleTitle("wolfenstein 3d");
-	midiOutOpen(&hMdiOut, MIDI_MAPPER, 0, 0, CALLBACK_NULL);
+	SetConsoleTitle("Shooter 3d");
 	CreateMap();
 	char* screen = new char[ScreenWidth * ScreenHeight];
 	char* MainMenuScreen = new char[MenuWidth * MenuHeight];
 	char* LvlMenuScreen = new char[LvlMenuWidth * LvlMenuHeight];
 	char* PausMenuScreen = new char[PauseWidth * PauseHeight];
 	char* GameOverScreen = new char[GameOverWidth * GameOverHeight];
+	char* RecordsScreen = new char[RecordsWidth * RecordsHeight];
 	hConsole = CreateConsoleScreenBuffer(GENERIC_READ | GENERIC_WRITE,
 		0, NULL, CONSOLE_TEXTMODE_BUFFER, NULL);
 	DWORD dwBytes = 0;
@@ -682,6 +705,8 @@ int main() {
 	Levels levels;
 	Pause pause;
 	GameOver gameOver;
+	sound = new Sound();
+	LoadMyRecords();
 	gameState = gsMainMenu;
 	while (gameState != gsQuit)
 	{
@@ -732,6 +757,18 @@ int main() {
 			if (event.isKeyUp(' '))
 				gameState = pause.Move(IN);
 		}
+		font.FontFamily = 0;
+		font.FontWeight = 400;
+		font.dwFontSize.X = 16;
+		font.dwFontSize.Y = 32;
+		SetCurrentConsoleFontEx(hConsole, true, &font);
+		while (gameState == gsShowRecords)
+		{
+			DrawRecords(RecordsScreen);
+			event.Update();
+			if (event.isKeyUp(VK_ESCAPE))
+				gameState = records.Move(BACK);
+		}
 		while (gameState == gsGameOver)
 		{
 			DrawGameOver(GameOverScreen, gameOver);
@@ -748,15 +785,12 @@ int main() {
 		font.dwFontSize.X = 8;
 		font.dwFontSize.Y = 8;
 		SetCurrentConsoleFontEx(hConsole, true, &font);
-		LoadSound();
-		LoadMyRecords();
 		while (gameState == gsRun)
 		{
 			tm1 = clock();
 			float time = (tm1 - tm2);
 			TotalTime += time;
 			tm2 = tm1;
-			list<Enemy*>::iterator pEnemy = enemyes.begin();
 			MovePlayer(time);
 			MoveEnemyes(time);
 			UpdateBullets();
@@ -767,13 +801,20 @@ int main() {
 			DrawBullets(screen);
 			DrawMap(screen, MapHeigth, MapWidth, ScreenWidth);
 			DrawInterface(screen, time);
-			screen[ScreenWidth * ScreenHeight - 1] = '\0';
 			WriteConsoleOutputCharacter(hConsole, screen, ScreenWidth * ScreenHeight, { 0, 0 }, &dwBytes);
 			if (player.HP <= 0)
 			{
+				sound->Play(sndGameOver);
 				gameState = gsGameOver;
-				records[levels.GetLevelNum()].kills = KillsCounter;
-				records[levels.GetLevelNum()].time = (int)TotalTime;
+				bool isUpdate = false;
+				Record tempRec = records.GetRecord(levels.GetLevelNum());
+				if (KillsCounter > tempRec.kills || 
+					(KillsCounter == tempRec.kills && TotalTime / 1000 < tempRec.time))
+				{
+					tempRec.kills = KillsCounter;
+					tempRec.time = TotalTime / 1000;
+					records.SetRecord(levels.GetLevelNum(), tempRec);
+				}
 				SaveRecords();
 			}
 		}
