@@ -14,7 +14,7 @@ Levels::Levels()
 	LevelList[0].PlayerY = 7;
 	LevelList[0].map += "#################";
 	LevelList[0].map += "#               #";
-	LevelList[0].map += "#  ####         #";
+	LevelList[0].map += "#  ####         f";
 	LevelList[0].map += "#  #  #  #    # #";
 	LevelList[0].map += "#  #    ###  ####";
 	LevelList[0].map += "#  #  #  #    # #";
@@ -26,7 +26,7 @@ Levels::Levels()
 	LevelList[1].MapWidth = 5;
 	LevelList[1].map += "#####";
 	LevelList[1].map += "#   #";
-	LevelList[1].map += "#   #";
+	LevelList[1].map += "#   f";
 	LevelList[1].map += "#   #";
 	LevelList[1].map += "#####";
 	LevelList[1].PlayerX = 2;
@@ -46,7 +46,7 @@ Levels::Levels()
 	LevelList[2].map += "#    #   #";
 	LevelList[2].map += "#        #";
 	LevelList[2].map += "#    #####";
-	LevelList[2].map += "#        #";
+	LevelList[2].map += "#        f";
 	LevelList[2].map += "##########";
 }
 

@@ -89,8 +89,23 @@ bool isCollision(float x, float y)
 	return isCollision;
 }
 
+bool IsWall(float x, float y)
+{
+	return map[(int)y * MapWidth + (int)x] == '#' 
+		|| map[(int)y * MapWidth + (int)x] == 'f';
+}
+
 void MovePlayer(float time)
 {
+	if (GetAsyncKeyState('F'))
+	{
+		float testX = player.fX + 0.1f * cosf(player.fAngle);
+		float testY = player.fY + 0.1f * sinf(player.fAngle);
+		if (map[(int)testY * MapWidth + (int)testX] == 'f')
+		{
+			gameState = gsGameOver;
+		}
+	}
 	if (GetAsyncKeyState(VK_ESCAPE))
 		gameState = gsPause;
 	if (GetAsyncKeyState('A'))
@@ -101,7 +116,7 @@ void MovePlayer(float time)
 	{
 		float testX = player.fX + player.fSpeed * cosf(player.fAngle) * time;
 		float testY = player.fY + player.fSpeed * sinf(player.fAngle) * time;
-		if (map[(int)testY * MapWidth + (int)testX] != '#' && !isCollision(testX, testY))
+		if (!IsWall(testX, testY) && !isCollision(testX, testY))
 		{
 			player.fX = testX;
 			player.fY = testY;
@@ -111,7 +126,7 @@ void MovePlayer(float time)
 	{
 		float testX = player.fX - player.fSpeed * cosf(player.fAngle) * time;
 		float testY = player.fY - player.fSpeed * sinf(player.fAngle) * time;
-		if (map[(int)testY * MapWidth + (int)testX] != '#' && !isCollision(testX, testY))
+		if (!IsWall(testX, testY) && !isCollision(testX, testY))
 		{
 			player.fX = testX;
 			player.fY = testY;
@@ -208,7 +223,6 @@ void SaveRecords()
 
 void LoadSound()
 {
-	
 	int size;
 	ifstream f(SoundFileName);
 	if (f.is_open())
@@ -220,16 +234,6 @@ void LoadSound()
 		f.read(sndBuf, size);
 		f.close();
 	}
-}
-
-void makeScreenShoot(char* screen)
-{
-/*	FILE* f;
-	f = fopen(OUTPUT, "w");
-	int i, j;
-	for (i = 0; i < ScreenHeight; i++)
-		for (j = 0; j < ScreenWidth; fputc(screen[i * ScreenWidth + j++], f));
-	fclose(f);*/
 }
 
 void PrintLine(char* screen, int ScreenWidth, char *strBuf, int left, int height)
@@ -250,7 +254,6 @@ void DrawInterface(char* screen, float time)
 	int i = 0, j = 0;
 	PrintLine(screen, ScreenWidth, strBuf, 15, 0);
 	int angle = player.fAngle * 180 / PI;
-	//strFPS = "         ";
 	j = 0;
 	_itoa_s(angle, strBuf, 10);
 	PrintLine(screen, ScreenWidth, strBuf, 10, 1);
@@ -261,11 +264,7 @@ void DrawInterface(char* screen, float time)
 	sprintf_s(strBuf, "%f", player.fY);
 	PrintLine(screen, ScreenWidth, strBuf, 5, 3);
 	sprintf_s(strBuf, "%d", player.HP);
-	//PrintLine(screen, , 5, 4);
 	PrintLine(screen, ScreenWidth, strBuf, 3, 4);
-	/*j = 0;
-	for (i = ScreenWidth - 5; i < ScreenWidth && strBuf[j] != '\0'; i++, j++)
-		screen[ScreenWidth * 2 + i] = strBuf[j];*/
 }
 
 void DrawWalls(char* screen)
@@ -277,12 +276,13 @@ void DrawWalls(char* screen)
 
 		float fWallDistance = 0;
 		bool isWall = false;
-
+		int TestX;
+		int TestY;
 		while (!isWall)
 		{
 			fWallDistance += 0.1f;
-			int TestX = (int)(player.fX + cosf(fRayAngle) * fWallDistance);
-			int TestY = (int)(player.fY + sinf(fRayAngle) * fWallDistance);
+			TestX = (int)(player.fX + cosf(fRayAngle) * fWallDistance);
+			TestY = (int)(player.fY + sinf(fRayAngle) * fWallDistance);
 
 			if (TestX < 0 || TestX >= MapWidth || TestY < 0 || TestY >= MapHeigth)
 			{
@@ -291,7 +291,7 @@ void DrawWalls(char* screen)
 			}
 			else
 			{
-				if (map[TestY * MapWidth + TestX] == '#')
+				if (IsWall((float)TestX, (float)TestY))
 					isWall = true;
 			}
 		}
@@ -308,6 +308,8 @@ void DrawWalls(char* screen)
 				WallShade = 177;
 			else
 				WallShade = 176;
+		if (map[(int)TestY * MapWidth + (int)TestX] == 'f')
+			WallShade = 'F';
 		for (y = 0; y < ScreenHeight; y++)
 		{
 
@@ -388,14 +390,13 @@ void DrawEnemy(char* screen, Enemy* enemy)
 
 void DrawEnemyes(char* screen)
 {
-	//list<Enemy*>::iterator p = enemyes.begin();
 	for (Enemy* pEnemy : enemyes)
 	{
 		DrawEnemy(screen, pEnemy);
 	}
 }
 
-//repair
+
 void SortEnemyes()
 {
 	Enemy* temp = new Enemy(0.0f, 0.0f, 0.0f);
@@ -412,11 +413,9 @@ void SortEnemyes()
 }
 
 
-//Add sort to enemyes and  maybe bullets
 void UpdateEnemyes()
 {
 	enemyes.sort([](const Enemy* en1, const Enemy* en2) {return *en1 < *en2; });
-	//SortEnemyes();
 	float size;
 	for (Enemy* pEnemy : enemyes)
 	{
@@ -521,15 +520,6 @@ void DrawBullets(char* screen)
 	}
 }
 
-void AddEnemyes()
-{
-	enemyes.push_back(new Enemy(10.0f, 3.0f, 0.3f));
-	enemyes.push_back(new Enemy(3.0f, 3.0f, 0.3f));
-	enemyes.push_back(new EnemySoldier(4.0f, 9.0f, 0.3f));
-	//enemyes.push_back(new Enemy(2.0f, 2.0f, 0.3f));
-	//	enemyes.push_back(new Enemy(8.0f, 11.0f, 0.3f));
-}
-
 void MoveEnemyes(float time)
 {
 	for (Enemy* pEnemy : enemyes)
@@ -553,6 +543,8 @@ void DrawRect(char *screen, int ScreenWidth, int x,
 
 void DrawMainMenu(char *MainMenuScreen, Menu &menu)
 {
+	SMALL_RECT rect = { 0, 0, MenuWidth, MenuHeight };
+	SetConsoleWindowInfo(hConsole, true, &rect);
 	DWORD dwBytes = 0;
 	memset(MainMenuScreen, ' ', MenuWidth * MenuHeight);
 	DrawRect(MainMenuScreen, MenuWidth, 2, 2 * (int)menu.GetIP(), 9, 3, '#');
@@ -616,6 +608,8 @@ void LoadLevel(Levels& levels)
 
 void DrawPauseMenu(char *screen,Pause &pause)
 {
+	SMALL_RECT rect = { 0, 0, PauseWidth, PauseHeight};
+	SetConsoleWindowInfo(hConsole, true, &rect);
 	DWORD dwBytes = 0;
 	memset(screen, ' ', MenuWidth * MenuHeight);
 	DrawRect(screen, MenuWidth, 2, 2 * (int)pause.GetIPP(), 10, 3, '#');
@@ -630,6 +624,8 @@ void DrawPauseMenu(char *screen,Pause &pause)
 
 void DrawGameOver(char* screen, GameOver& gameOver)
 {
+	SMALL_RECT rect = { 0, 0, GameOverWidth, GameOverHeight};
+	SetConsoleWindowInfo(hConsole, true, &rect);
 	DWORD dwBytes = 0;
 	memset(screen, ' ', GameOverHeight * GameOverWidth);
 	DrawRect(screen, GameOverWidth, 2, 2 * (int)gameOver.GetGOIP() + 6, 10, 3, '#');
@@ -649,6 +645,8 @@ void DrawGameOver(char* screen, GameOver& gameOver)
 
 void DrawRecords(char* screen/*, Records& records*/)
 {
+	SMALL_RECT rect = { 0, 0, RecordsWidth, RecordsHeight };
+	SetConsoleWindowInfo(hConsole, true, &rect);
 	DWORD dwBytes = 0;
 	char strBuf[20] = "Game Over";
 	Record tempRec;
@@ -683,7 +681,6 @@ int main() {
 	hConsole = CreateConsoleScreenBuffer(GENERIC_READ | GENERIC_WRITE,
 		0, NULL, CONSOLE_TEXTMODE_BUFFER, NULL);
 	DWORD dwBytes = 0;
-	//SetConsoleTextAttribute(hConsole, FOREGROUND_BLUE | FOREGROUND_RED | FOREGROUND_INTENSITY);
 	SetConsoleActiveScreenBuffer(hConsole);
 	GetConsoleTitle(Titles, BUF_SIZE);
 	font.cbSize = sizeof(CONSOLE_FONT_INFOEX);
@@ -693,11 +690,6 @@ int main() {
 	font.dwFontSize.X = 32;
 	font.dwFontSize.Y = 64;
 	SetCurrentConsoleFontEx(hConsole, true, &font);
-	/*COORD dimensioin;
-	dimensioin.X = 600;
-	dimensioin.Y = 700;
-	SetConsoleDisplayMode(hConsole, CONSOLE_WINDOWED_MODE, &dimensioin);*/
-	//AddEnemyes();
 	EventHandler event;
 	int tm1 = clock();
 	int tm2 = clock();
@@ -744,6 +736,8 @@ int main() {
 		while (gameState == gsLoadLevel)
 		{
 			LoadLevel(levels);
+			SMALL_RECT rect = { 0, 0, ScreenWidth, ScreenHeight };
+			SetConsoleWindowInfo(hConsole, true, &rect);
 			gameState = gsRun;
 		}
 		while (gameState == gsPause)
@@ -819,6 +813,5 @@ int main() {
 			}
 		}
 	}
-	//midiOutClose(hMdiOut);
 	return 0;
 } 

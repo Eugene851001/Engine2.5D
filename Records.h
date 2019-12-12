@@ -3,7 +3,7 @@
 #include "Engine.h"
 
 const int RecordsWidth = 20;
-const int RecordsHeight = 20;
+const int RecordsHeight = 12;
 
 typedef struct _Record
 {
